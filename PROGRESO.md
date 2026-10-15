@@ -2,7 +2,10 @@
 
 Última actualización: 2026-10-15
 
-## Etapa actual: 1 terminada en código, falta configurar Supabase
+## Etapa actual: 2 (panel de administración) hecha en código, falta probarla en el navegador
+
+> ⚠️ **Pendiente: todavía no está creado mi usuario admin en Supabase.** Sin él no se puede
+> entrar al panel. Ver "Qué sigue" → paso 1.
 
 Repositorio: https://github.com/mtzMarcos/Zapateria (privado, rama `main`).
 
@@ -13,7 +16,7 @@ Repositorio: https://github.com/mtzMarcos/Zapateria (privado, rama `main`).
 3. `npm install` (la carpeta `node_modules` no se sube a GitHub).
 4. Copiar `.env.example` como `.env.local` y completar las claves desde el panel de Supabase.
    `.env.local` **no está en el repositorio a propósito** (tiene claves secretas): hay que crearlo en cada PC.
-5. `npm run dev` y abrir http://localhost:3000
+5. `npm run dev` y abrir http://localhost:3000 (el panel está en http://localhost:3000/admin)
 
 Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 
@@ -22,9 +25,9 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 | Etapa | Descripción | Estado |
 |---|---|---|
 | 0 | Relevamiento con el cliente | Pendiente |
-| 1 | Base del proyecto y modelo de datos | ✅ Código listo, falta probar con Supabase |
-| 2 | Panel de administración (login, productos, fotos, stock por talle) | Siguiente |
-| 3 | Catálogo público con filtros y página de producto | — |
+| 1 | Base del proyecto y modelo de datos | ✅ Probado con Supabase |
+| 2 | Panel de administración (login, productos, fotos, stock por talle) | ✅ Código listo, falta probar a mano en el navegador |
+| 3 | Catálogo público con filtros y página de producto | Siguiente |
 | 4 | Carrito y checkout (envío por zona o retiro en local) | — |
 | 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | — |
 | 6 | Pedidos en el panel | — |
@@ -47,17 +50,38 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 - README con los pasos para levantar el proyecto.
 
 - Proyecto subido a GitHub (repositorio privado).
+- Supabase configurado y probado (el SQL corrió sin errores, la home muestra las zonas).
+
+## Qué se hizo (Etapa 2)
+
+Panel en `/admin` (`src/app/admin/`), solo para usuarios que estén en la tabla `admins`:
+
+- **Login** con email y contraseña (Supabase Auth). `src/proxy.ts` renueva la sesión y manda al login
+  si no hay sesión; además cada página y acción verifica que sea admin (`src/lib/admin/auth.ts`).
+- **Productos**: listado con portada, precio, stock total y avisos ("visible sin fotos / sin stock");
+  alta, edición (nombre, marca, categoría, precio, descripción, visible/oculto) y eliminación.
+  El slug (URL) se genera al crearlo y no cambia al renombrar.
+- **Talles y stock**: agregar talles de a uno, en lista ("38, 39, 40") o en rango ("35-42");
+  editar el stock de todos juntos; quitar talles.
+- **Fotos**: subida múltiple (JPG/PNG/WEBP, hasta 5 MB) directo del navegador a Supabase Storage,
+  reordenar (la primera es la portada) y borrar.
+- **Marcas, categorías y zonas de envío**: alta, edición y baja (no deja borrar marcas/categorías en uso).
+- Las acciones llaman a `catalogoActualizado()`, que invalida la etiqueta de caché `catalogo`:
+  la tienda pública de la Etapa 3 tiene que cachear sus consultas con `cacheTag("catalogo")`.
+
+Probado: build, lint y tipos OK; con un admin temporal (ya borrado) se verificaron los permisos
+RLS, las consultas, la subida/borrado de fotos y que todas las páginas del panel rendericen.
+**Falta probar a mano en el navegador** los formularios (login, guardar, subir fotos, etc.).
 
 ## Qué sigue
 
-1. **Configurar Supabase (todavía no se hizo):**
-   1. Crear el proyecto en supabase.com (región South America – São Paulo).
-   2. SQL Editor → New query → pegar todo `supabase/migrations/20261013000000_esquema_inicial.sql` → Run.
-      Debe decir "Success. No rows returned". Todavía no se probó contra una base real: si da error, copiarlo tal cual.
-   3. Crear `.env.local` con las 3 claves de Project Settings → API Keys.
-   4. `npm run dev` y verificar que la página de inicio muestre "✅ Conectado a Supabase" y las 3 zonas de envío.
-2. (Opcional) Conectar el repositorio con Vercel y cargar las mismas variables de entorno.
-3. Arrancar la **Etapa 2: panel de administración** (login del dueño, alta/edición de productos, fotos y stock por talle).
+1. **Crear el usuario admin** (una sola vez, ver README → "Usuario administrador"):
+   Authentication → Users → Add user, y después el `insert into public.admins …` en el SQL Editor.
+   Recomendado: desactivar "Allow new users to sign up" en Authentication.
+2. Entrar a http://localhost:3000/admin y probar: crear marca y categoría, crear un producto,
+   subir fotos, agregar talles y stock, editar, ocultar y borrar.
+3. (Opcional) Conectar el repositorio con Vercel y cargar las mismas variables de entorno.
+4. Arrancar la **Etapa 3: catálogo público** (listado con filtros por marca/categoría/talle y página de producto).
 
 ## Pendiente con el cliente
 
