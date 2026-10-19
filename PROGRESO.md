@@ -1,11 +1,14 @@
 # Progreso del proyecto
 
-Última actualización: 2026-10-15
+Última actualización: 2026-10-19
 
-## Etapa actual: 2 (panel de administración) hecha en código, falta probarla en el navegador
+## Etapa actual: 3 (catálogo público) en curso
 
-> ⚠️ **Pendiente: todavía no está creado mi usuario admin en Supabase.** Sin él no se puede
-> entrar al panel. Ver "Qué sigue" → paso 1.
+## Pendientes / bugs conocidos
+
+- [ ] **Al crear un producto no deja elegir marca ni categoría.** Revisarlo más adelante.
+  (Primera sospecha: si no hay marcas/categorías cargadas, los desplegables solo muestran
+  "Sin marca" / "Sin categoría". Confirmarlo antes de cambiar código.)
 
 Repositorio: https://github.com/mtzMarcos/Zapateria (privado, rama `main`).
 
@@ -26,8 +29,8 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 |---|---|---|
 | 0 | Relevamiento con el cliente | Pendiente |
 | 1 | Base del proyecto y modelo de datos | ✅ Probado con Supabase |
-| 2 | Panel de administración (login, productos, fotos, stock por talle) | ✅ Código listo, falta probar a mano en el navegador |
-| 3 | Catálogo público con filtros y página de producto | Siguiente |
+| 2 | Panel de administración (login, productos, fotos, stock por talle) | ✅ Funciona (ver bug de marca/categoría en Pendientes) |
+| 3 | Catálogo público con filtros y página de producto | En curso |
 | 4 | Carrito y checkout (envío por zona o retiro en local) | — |
 | 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | — |
 | 6 | Pedidos en el panel | — |
@@ -71,17 +74,13 @@ Panel en `/admin` (`src/app/admin/`), solo para usuarios que estén en la tabla 
 
 Probado: build, lint y tipos OK; con un admin temporal (ya borrado) se verificaron los permisos
 RLS, las consultas, la subida/borrado de fotos y que todas las páginas del panel rendericen.
-**Falta probar a mano en el navegador** los formularios (login, guardar, subir fotos, etc.).
+Usuario admin creado y panel probado en el navegador. Registro de usuarios nuevos desactivado en Supabase.
 
 ## Qué sigue
 
-1. **Crear el usuario admin** (una sola vez, ver README → "Usuario administrador"):
-   Authentication → Users → Add user, y después el `insert into public.admins …` en el SQL Editor.
-   Recomendado: desactivar "Allow new users to sign up" en Authentication.
-2. Entrar a http://localhost:3000/admin y probar: crear marca y categoría, crear un producto,
-   subir fotos, agregar talles y stock, editar, ocultar y borrar.
+1. Terminar la **Etapa 3: catálogo público** (listado con filtros por marca/categoría/talle y página de producto).
+2. Revisar el bug de marca/categoría al crear producto (ver Pendientes).
 3. (Opcional) Conectar el repositorio con Vercel y cargar las mismas variables de entorno.
-4. Arrancar la **Etapa 3: catálogo público** (listado con filtros por marca/categoría/talle y página de producto).
 
 ## Pendiente con el cliente
 
