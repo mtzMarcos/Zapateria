@@ -1,16 +1,16 @@
 # Progreso del proyecto
 
-Última actualización: 2026-10-19
+Última actualización: 2026-10-21
 
-## Etapa actual: 3 (catálogo público) hecha en código, falta probarla en el navegador
+## Etapa actual: 4 (carrito y checkout) en curso
 
 ## Pendientes / bugs conocidos
 
-- [ ] **Al crear un producto no deja elegir marca ni categoría.** Revisarlo más adelante.
-  Revisado el 2026-10-19: en la base **no hay ninguna marca ni categoría cargada**, así que los
-  desplegables solo pueden mostrar "Sin marca" / "Sin categoría". Probablemente se resuelve
-  cargándolas primero en Panel → Marcas / Categorías. Si después de eso sigue fallando, es un bug real.
+- [x] ~~Al crear un producto no deja elegir marca ni categoría.~~ Resuelto el 2026-10-21: no era un bug,
+  no había marcas ni categorías cargadas. Con los datos de ejemplo funciona.
   Mejora posible: mostrar un aviso con link a Marcas/Categorías cuando estén vacías.
+- [ ] Confirmar en el navegador que al editar un producto en el panel el cambio se ve enseguida en la tienda.
+- [ ] **Antes de lanzar: `npm run ejemplo:borrar`** para sacar los datos de ejemplo (ver abajo).
 
 Repositorio: https://github.com/mtzMarcos/Zapateria (privado, rama `main`).
 
@@ -32,8 +32,8 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 | 0 | Relevamiento con el cliente | Pendiente |
 | 1 | Base del proyecto y modelo de datos | ✅ Probado con Supabase |
 | 2 | Panel de administración (login, productos, fotos, stock por talle) | ✅ Funciona (ver bug de marca/categoría en Pendientes) |
-| 3 | Catálogo público con filtros y página de producto | ✅ Código listo, falta probar a mano en el navegador |
-| 4 | Carrito y checkout (envío por zona o retiro en local) | Siguiente |
+| 3 | Catálogo público con filtros y página de producto | ✅ Probado en el navegador con los datos de ejemplo |
+| 4 | Carrito y checkout (envío por zona o retiro en local) | En curso |
 | 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | — |
 | 6 | Pedidos en el panel | — |
 | 7 | Legales, SEO, dominio y lanzamiento | — |
@@ -106,14 +106,19 @@ Probado con datos temporales (ya borrados) en un servidor de producción aparte:
 productos sin stock, ocultos, 404, relacionados y títulos. **Falta probar a mano en el navegador**
 (y confirmar que al editar un producto en el panel el cambio se ve enseguida en la tienda).
 
+## Datos de ejemplo (2026-10-21)
+
+`scripts/datos-ejemplo.mjs`, con `npm run ejemplo:cargar` y `npm run ejemplo:borrar` (detalle en el README).
+Cargados en Supabase: marcas Nike, Adidas, Puma y Topper; categorías Zapatillas, Botas y Ojotas;
+10 productos con talles 36 a 44 y stock variado (2 agotados: Adidas Ultraboost Light y Puma Bota Urbana)
+y fotos generadas con el nombre del producto. Sus URLs empiezan con `ejemplo-`; el borrado solo toca esos
+productos y las marcas/categorías de ejemplo que hayan quedado sin productos. Probado: cargar, volver a
+cargar, borrar y cargar de nuevo. Jordan Air (el producto cargado a mano) no se toca.
+
 ## Qué sigue
 
-1. Probar la tienda en el navegador: cargar marcas y categorías, asignarlas a productos, cargar stock y
-   revisar `/`, `/productos` (filtros) y la página de cada producto. Editar un precio en el panel y
-   confirmar que la tienda lo muestra enseguida.
-2. Revisar el bug de marca/categoría al crear producto (ver Pendientes).
-3. **Etapa 4: carrito y checkout** (envío por zona o retiro en local).
-4. (Opcional) Conectar el repositorio con Vercel y cargar las mismas variables de entorno.
+1. **Etapa 4: carrito y checkout** (envío por zona o retiro en local).
+2. (Opcional) Conectar el repositorio con Vercel y cargar las mismas variables de entorno.
 
 ## Pendiente con el cliente
 

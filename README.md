@@ -27,6 +27,19 @@ No hay registro público. Para dar acceso al panel:
 Recomendado: en **Authentication → Sign In / Providers**, desactivar
 "Allow new users to sign up" para que nadie pueda crearse una cuenta.
 
+## Datos de ejemplo
+
+Para probar la tienda sin los productos reales:
+
+- `npm run ejemplo:cargar`: crea 4 marcas, 3 categorías y 10 productos con talles del 36 al 44
+  (algunos sin stock) y fotos generadas. Se puede correr de nuevo: vuelve a crear los productos de ejemplo desde cero.
+- `npm run ejemplo:borrar`: borra los productos de ejemplo (con talles y fotos) y las marcas/categorías
+  de ejemplo que no tengan productos asignados. **No toca los productos reales**: los de ejemplo se
+  reconocen porque su URL empieza con `ejemplo-`.
+
+Usan la clave secreta de `.env.local`. Después de correrlos, si la tienda no muestra los cambios,
+reiniciar `npm run dev` o guardar cualquier cosa en el panel (refresca la caché del catálogo).
+
 ## Estructura
 
 ```
@@ -49,6 +62,7 @@ src/
     env.ts             Variables de entorno y URL pública de las fotos
   lib/formato.ts       Formato de precios en pesos
 supabase/migrations/   Esquema de la base de datos (SQL)
+scripts/               Datos de ejemplo (cargar / borrar)
 ```
 
 ## Modelo de datos
