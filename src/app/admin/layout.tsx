@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { tienda } from "@/config/tienda";
 
 export const metadata: Metadata = {
-  title: `Panel · ${tienda.nombre}`,
+  title: "Panel",
   robots: { index: false, follow: false },
 };
 

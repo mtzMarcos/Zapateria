@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
 import { opcionesProducto } from "@/lib/admin/opciones";
 import { urlFoto } from "@/lib/supabase/env";
+import { compararTalles } from "@/lib/talles";
 import { ProductoForm, type DatosProducto } from "../producto-form";
 import { guardarProducto } from "../actions";
 import { Talles } from "./talles";
@@ -40,9 +41,7 @@ export default async function EditarProductoPage({ params }: PageProps<"/admin/p
   const producto = resultado.data as Producto;
 
   // Los talles se ordenan "como números" cuando se puede: 35, 36, 40.5, 41.
-  const talles = producto.product_variants.toSorted((a, b) =>
-    a.size.localeCompare(b.size, "es", { numeric: true }),
-  );
+  const talles = producto.product_variants.toSorted((a, b) => compararTalles(a.size, b.size));
   const fotos = producto.product_images.map((f) => ({ id: f.id, url: urlFoto(f.storage_path) }));
 
   return (

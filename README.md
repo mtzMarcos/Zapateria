@@ -32,10 +32,14 @@ Recomendado: en **Authentication → Sign In / Providers**, desactivar
 ```
 src/
   app/                 Páginas (App Router)
+  app/(tienda)/        Tienda pública: inicio, catálogo con filtros y página de producto
   app/admin/           Panel de administración (login, productos, marcas, categorías, envíos)
   proxy.ts             Renueva la sesión y protege /admin
   components/admin/    Botones, mensajes y estilos del panel
+  components/tienda/   Tarjetas y grilla de productos
   config/tienda.ts     Nombre y datos generales de la tienda
+  lib/catalogo.ts      Consultas del catálogo (cacheadas con la etiqueta "catalogo")
+  lib/filtros.ts       Filtros y orden del catálogo
   lib/admin/           Verificación de admin (auth.ts) y utilidades de formularios
   lib/supabase/
     public.ts          Cliente con clave pública (RLS aplica) – catálogo

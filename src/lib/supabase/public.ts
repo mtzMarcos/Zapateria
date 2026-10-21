@@ -14,5 +14,11 @@ export function createPublicClient() {
 
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      // Si no, Next guarda cada consulta en su caché de fetch, que sobrevive
+      // a los deploys y no se borra con updateTag("catalogo"): los cambios
+      // del panel no se verían. La caché la manejamos con 'use cache'.
+      fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
+    },
   });
 }

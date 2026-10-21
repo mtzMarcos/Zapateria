@@ -2,13 +2,15 @@
 
 Última actualización: 2026-10-19
 
-## Etapa actual: 3 (catálogo público) en curso
+## Etapa actual: 3 (catálogo público) hecha en código, falta probarla en el navegador
 
 ## Pendientes / bugs conocidos
 
 - [ ] **Al crear un producto no deja elegir marca ni categoría.** Revisarlo más adelante.
-  (Primera sospecha: si no hay marcas/categorías cargadas, los desplegables solo muestran
-  "Sin marca" / "Sin categoría". Confirmarlo antes de cambiar código.)
+  Revisado el 2026-10-19: en la base **no hay ninguna marca ni categoría cargada**, así que los
+  desplegables solo pueden mostrar "Sin marca" / "Sin categoría". Probablemente se resuelve
+  cargándolas primero en Panel → Marcas / Categorías. Si después de eso sigue fallando, es un bug real.
+  Mejora posible: mostrar un aviso con link a Marcas/Categorías cuando estén vacías.
 
 Repositorio: https://github.com/mtzMarcos/Zapateria (privado, rama `main`).
 
@@ -30,8 +32,8 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 | 0 | Relevamiento con el cliente | Pendiente |
 | 1 | Base del proyecto y modelo de datos | ✅ Probado con Supabase |
 | 2 | Panel de administración (login, productos, fotos, stock por talle) | ✅ Funciona (ver bug de marca/categoría en Pendientes) |
-| 3 | Catálogo público con filtros y página de producto | En curso |
-| 4 | Carrito y checkout (envío por zona o retiro en local) | — |
+| 3 | Catálogo público con filtros y página de producto | ✅ Código listo, falta probar a mano en el navegador |
+| 4 | Carrito y checkout (envío por zona o retiro en local) | Siguiente |
 | 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | — |
 | 6 | Pedidos en el panel | — |
 | 7 | Legales, SEO, dominio y lanzamiento | — |
@@ -76,11 +78,42 @@ Probado: build, lint y tipos OK; con un admin temporal (ya borrado) se verificar
 RLS, las consultas, la subida/borrado de fotos y que todas las páginas del panel rendericen.
 Usuario admin creado y panel probado en el navegador. Registro de usuarios nuevos desactivado en Supabase.
 
+## Qué se hizo (Etapa 3)
+
+Tienda pública (`src/app/(tienda)/`), con encabezado (menú de categorías) y pie:
+
+- **Inicio** (`/`): presentación, categorías y "Novedades" (los 8 más nuevos, con stock primero).
+- **Catálogo** (`/productos`): filtros por categoría, marca y talle (solo talles con stock) y orden
+  (más nuevos / menor precio / mayor precio). Los filtros van en la URL
+  (`/productos?categoria=zapatillas&talle=40&orden=precio-asc`), así se pueden compartir.
+  Los productos sin stock se muestran con la etiqueta "Sin stock" y van al final.
+- **Producto** (`/productos/[slug]`): galería de fotos, precio, talles (los agotados tachados),
+  descripción y "También te puede interesar" (misma categoría). Título y foto para compartir en redes.
+  El botón "Agregar al carrito" está deshabilitado hasta la Etapa 4.
+- Los productos ocultos no aparecen y su URL da 404.
+- Datos en `src/lib/catalogo.ts` (con `use cache` + etiqueta `catalogo`), filtros en `src/lib/filtros.ts`.
+  Se trae todo el catálogo en una consulta y se filtra en memoria (alcanza para cientos de productos).
+- Se borró la página provisoria que verificaba la conexión con Supabase.
+
+**Caché (importante para las próximas etapas):** el catálogo queda guardado hasta 1 hora.
+El panel lo refresca al instante con `updateTag("catalogo")`. **Cualquier cosa que cambie productos o
+stock por fuera del panel** (por ejemplo, el webhook de Mercado Pago en la Etapa 5) tiene que llamar a
+`revalidateTag("catalogo")`; si no, la tienda muestra stock viejo. El cliente público de Supabase usa
+`cache: "no-store"` a propósito: si no, Next guarda las consultas en otra caché que sobrevive a los
+deploys y que `updateTag` no borra.
+
+Probado con datos temporales (ya borrados) en un servidor de producción aparte: filtros, orden,
+productos sin stock, ocultos, 404, relacionados y títulos. **Falta probar a mano en el navegador**
+(y confirmar que al editar un producto en el panel el cambio se ve enseguida en la tienda).
+
 ## Qué sigue
 
-1. Terminar la **Etapa 3: catálogo público** (listado con filtros por marca/categoría/talle y página de producto).
+1. Probar la tienda en el navegador: cargar marcas y categorías, asignarlas a productos, cargar stock y
+   revisar `/`, `/productos` (filtros) y la página de cada producto. Editar un precio en el panel y
+   confirmar que la tienda lo muestra enseguida.
 2. Revisar el bug de marca/categoría al crear producto (ver Pendientes).
-3. (Opcional) Conectar el repositorio con Vercel y cargar las mismas variables de entorno.
+3. **Etapa 4: carrito y checkout** (envío por zona o retiro en local).
+4. (Opcional) Conectar el repositorio con Vercel y cargar las mismas variables de entorno.
 
 ## Pendiente con el cliente
 
