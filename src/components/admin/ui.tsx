@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import type { EstadoForm } from "@/lib/admin/form";
+import type { EstadoForm } from "@/lib/form";
 import { clasesBoton, type VarianteBoton } from "./estilos";
 
 /** Botón de envío que se deshabilita mientras la acción está en curso. */

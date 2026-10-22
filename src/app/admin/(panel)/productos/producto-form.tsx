@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { estadoInicial, type EstadoForm } from "@/lib/admin/form";
+import { estadoInicial, type EstadoForm } from "@/lib/form";
 import { BotonEnviar, Mensaje } from "@/components/admin/ui";
 import { claseInput, claseLabel } from "@/components/admin/estilos";
 

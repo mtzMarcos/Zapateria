@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { tienda } from "@/config/tienda";
+import { CarritoLink, CarritoLinkVacio } from "@/components/tienda/carrito-link";
 import { obtenerCatalogo } from "@/lib/catalogo";
 import { opcionesDeFiltro } from "@/lib/filtros";
 
@@ -12,6 +14,11 @@ export default function TiendaLayout({ children }: LayoutProps<"/">) {
             {tienda.nombre}
           </Link>
           <Navegacion />
+          <div className="ml-auto">
+            <Suspense fallback={<CarritoLinkVacio />}>
+              <CarritoLink />
+            </Suspense>
+          </div>
         </div>
       </header>
       <div className="flex-1">{children}</div>

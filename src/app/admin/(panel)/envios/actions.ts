@@ -1,7 +1,7 @@
 "use server";
 
 import { requireAdmin } from "@/lib/admin/auth";
-import { mensajeError, numero, texto, type EstadoForm } from "@/lib/admin/form";
+import { mensajeError, numero, texto, type EstadoForm } from "@/lib/form";
 import { catalogoActualizado } from "@/lib/admin/revalidar";
 
 function leerZona(formData: FormData) {

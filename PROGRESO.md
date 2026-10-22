@@ -2,7 +2,7 @@
 
 Última actualización: 2026-10-21
 
-## Etapa actual: 4 (carrito y checkout) en curso
+## Etapa actual: 4 (carrito y checkout) hecha en código, falta probarla en el navegador
 
 ## Pendientes / bugs conocidos
 
@@ -33,8 +33,8 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 | 1 | Base del proyecto y modelo de datos | ✅ Probado con Supabase |
 | 2 | Panel de administración (login, productos, fotos, stock por talle) | ✅ Funciona (ver bug de marca/categoría en Pendientes) |
 | 3 | Catálogo público con filtros y página de producto | ✅ Probado en el navegador con los datos de ejemplo |
-| 4 | Carrito y checkout (envío por zona o retiro en local) | En curso |
-| 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | — |
+| 4 | Carrito y checkout (envío por zona o retiro en local) | ✅ Código listo, falta probar a mano en el navegador |
+| 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | Siguiente |
 | 6 | Pedidos en el panel | — |
 | 7 | Legales, SEO, dominio y lanzamiento | — |
 
@@ -106,6 +106,37 @@ Probado con datos temporales (ya borrados) en un servidor de producción aparte:
 productos sin stock, ocultos, 404, relacionados y títulos. **Falta probar a mano en el navegador**
 (y confirmar que al editar un producto en el panel el cambio se ve enseguida en la tienda).
 
+## Qué se hizo (Etapa 4)
+
+- **Carrito** (`/carrito`): se guarda en una cookie (30 días) con solo el id de cada talle y la cantidad.
+  Precio, nombre y stock se leen siempre de la base (sin caché), así nadie puede cambiar un precio
+  editando la cookie. Sumar/restar unidades, quitar, y como máximo 10 unidades por talle o el stock que haya.
+  Si un producto se agota, se oculta o baja el stock mientras está en el carrito, se avisa y hay un botón
+  "Ajustar al stock disponible"; no deja seguir al checkout hasta corregirlo.
+  Contador de unidades en el encabezado.
+- **Agregar al carrito** en la página de producto (elegir talle primero).
+- **Checkout** (`/checkout`): nombre, email, teléfono; envío a domicilio (zona + dirección completa, provincia
+  de una lista) o retiro en el local (sin costo). El total se actualiza al elegir la zona.
+  La validación real está en el servidor (`src/app/(tienda)/checkout/`): recalcula precios, stock y costo
+  de envío desde la base; lo que mande el navegador solo se usa para los datos del comprador.
+- Al confirmar se crea el pedido en `orders` + `order_items` con estado `pending_payment`, se vacía el
+  carrito y se muestra `/pedido/[id]` con el número de pedido (#1001, #1002…). Los pedidos se escriben y
+  leen con la clave secreta (el público no tiene acceso por RLS); el id es un UUID imposible de adivinar.
+- **El stock no se descuenta al crear el pedido**: se descuenta cuando Mercado Pago confirme el pago (Etapa 5).
+  Por ahora la confirmación dice "te vamos a contactar para coordinar el pago"; en la Etapa 5 el checkout
+  va a mandar a pagar a Mercado Pago en lugar de ir directo a la confirmación.
+- Datos del local para el retiro (dirección y horarios) en `src/config/tienda.ts`: **completar con el cliente**.
+- `src/lib/admin/form.ts` pasó a `src/lib/form.ts` (lo usan el panel y la tienda).
+
+Probado en un servidor de producción aparte, mandando los formularios como un navegador sin JavaScript
+(29 comprobaciones): agregar, tope de stock, contador, +/−, aviso y ajuste cuando baja el stock,
+validaciones del checkout, pedido con envío (totales recalculados aunque se mande un total falso),
+pedido con retiro, carrito vacío, confirmación y pedido inexistente. Los pedidos de prueba se borraron.
+**Falta probar a mano en el navegador** (con JavaScript: cambiar entre envío/retiro, el total al elegir zona).
+
+Nota: los pedidos todavía no se ven en el panel (eso es la Etapa 6). Mientras tanto se ven en
+Supabase → Table Editor → `orders` y `order_items`.
+
 ## Datos de ejemplo (2026-10-21)
 
 `scripts/datos-ejemplo.mjs`, con `npm run ejemplo:cargar` y `npm run ejemplo:borrar` (detalle en el README).
@@ -117,8 +148,11 @@ cargar, borrar y cargar de nuevo. Jordan Air (el producto cargado a mano) no se 
 
 ## Qué sigue
 
-1. **Etapa 4: carrito y checkout** (envío por zona o retiro en local).
-2. (Opcional) Conectar el repositorio con Vercel y cargar las mismas variables de entorno.
+1. Probar en el navegador: agregar productos, cambiar cantidades, hacer un pedido con envío y otro con
+   retiro, y verlos en Supabase (`orders`). Los pedidos de prueba se pueden borrar desde ahí.
+2. **Etapa 5: Mercado Pago Checkout Pro** (necesita las credenciales de prueba de Mercado Pago).
+   El webhook tiene que descontar stock y llamar a `revalidateTag("catalogo")`.
+3. (Opcional) Conectar el repositorio con Vercel y cargar las mismas variables de entorno.
 
 ## Pendiente con el cliente
 

@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createAuthClient } from "@/lib/supabase/server";
-import { texto, type EstadoForm } from "@/lib/admin/form";
+import { texto, type EstadoForm } from "@/lib/form";
 
 export async function iniciarSesion(
   _estado: EstadoForm,

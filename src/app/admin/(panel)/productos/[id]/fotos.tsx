@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState, useTransition } from "react";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { borrarFoto, moverFoto, registrarFotos } from "../actions";
-import type { EstadoForm } from "@/lib/admin/form";
+import type { EstadoForm } from "@/lib/form";
 
 type Foto = { id: string; url: string };
 

@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/admin/auth";
-import { mensajeError, numero, texto, type EstadoForm } from "@/lib/admin/form";
+import { mensajeError, numero, texto, type EstadoForm } from "@/lib/form";
 import { catalogoActualizado } from "@/lib/admin/revalidar";
 import { createServiceClient } from "@/lib/supabase/service";
 import { slugify } from "@/lib/slug";

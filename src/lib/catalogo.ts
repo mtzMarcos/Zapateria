@@ -10,7 +10,7 @@ import { compararTalles } from "@/lib/talles";
 // por si algo cambia la base por fuera del panel.
 
 type Referencia = { name: string; slug: string };
-export type Talle = { size: string; stock: number };
+export type Talle = { id: string; size: string; stock: number };
 
 export type ProductoResumen = {
   id: string;
@@ -42,7 +42,7 @@ type FilaProducto = {
 };
 
 const columnas =
-  "id, slug, name, price, brands(name, slug), categories(name, slug, position), product_variants(size, stock), product_images(storage_path)";
+  "id, slug, name, price, brands(name, slug), categories(name, slug, position), product_variants(id, size, stock), product_images(storage_path)";
 
 function normalizar(fila: FilaProducto): ProductoResumen {
   const talles = fila.product_variants.toSorted((a, b) => compararTalles(a.size, b.size));

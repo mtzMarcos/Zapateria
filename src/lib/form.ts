@@ -1,4 +1,4 @@
-/** Resultado de una acción de formulario del panel, para mostrar un mensaje. */
+/** Resultado de una acción de formulario (panel o tienda), para mostrar un mensaje. */
 export type EstadoForm = { error?: string; ok?: string };
 
 export const estadoInicial: EstadoForm = {};
