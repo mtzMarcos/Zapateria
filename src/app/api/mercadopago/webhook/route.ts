@@ -30,10 +30,15 @@ export async function POST(request: NextRequest) {
   const firma = firmaValida(
     request.headers.get("x-signature"),
     request.headers.get("x-request-id"),
-    String(pagoId),
+    params.get("data.id"),
   );
   if (firma === false) {
-    console.warn(`Webhook de Mercado Pago con firma inválida (pago ${pagoId})`);
+    // Datos para diagnosticar en los logs de Vercel (ninguno es secreto).
+    const ts = request.headers.get("x-signature")?.match(/ts=([^,]*)/)?.[1];
+    console.warn(
+      `Webhook de Mercado Pago con firma inválida (pago ${pagoId}). ` +
+        `URL: ?${params}, x-request-id: ${request.headers.get("x-request-id") ?? "(no vino)"}, ts: ${ts ?? "(no vino)"}`,
+    );
     return new Response("firma inválida", { status: 401 });
   }
   if (firma === null) {

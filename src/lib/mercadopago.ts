@@ -74,10 +74,12 @@ export async function crearPreferencia(datos: {
       payer: { name: datos.comprador.nombre, email: datos.comprador.email },
       external_reference: datos.pedidoId,
       metadata: { pedido: datos.numero },
+      // Sin notification_url a propósito: los avisos llegan al webhook configurado
+      // en el panel de Mercado Pago, que es el que se firma con la clave secreta
+      // (los avisos a notification_url llegaban con una firma que no coincidía).
       ...(sitioPublico() && {
         back_urls: { success: retorno, failure: retorno, pending: retorno },
         auto_return: "approved",
-        notification_url: `${sitio}/api/mercadopago/webhook`,
       }),
       // El link de pago vence a las 48 h; después se puede generar otro desde
       // la página del pedido.
@@ -113,9 +115,11 @@ export async function buscarPagos(pedidoId: string) {
 /**
  * Verifica la firma de un aviso (webhook) de Mercado Pago.
  * Ver "Validar origen de la notificación" en la documentación de Webhooks.
+ * `dataId` es el parámetro `data.id` de la URL del aviso (null si no vino):
+ * según la documentación, lo que no viene en el aviso se saca del manifiesto.
  * Devuelve null si no hay clave configurada (no se puede verificar).
  */
-export function firmaValida(firma: string | null, requestId: string | null, dataId: string) {
+export function firmaValida(firma: string | null, requestId: string | null, dataId: string | null) {
   const secreto = process.env.MERCADOPAGO_WEBHOOK_SECRET;
   if (!secreto) return null;
   if (!firma) return false;
@@ -125,9 +129,11 @@ export function firmaValida(firma: string | null, requestId: string | null, data
   );
   if (!partes.ts || !partes.v1) return false;
 
-  // Los ids alfanuméricos se firman en minúscula.
-  const id = /^[a-z0-9]+$/i.test(dataId) ? dataId.toLowerCase() : dataId;
-  let manifiesto = `id:${id};`;
+  let manifiesto = "";
+  if (dataId) {
+    // Los ids alfanuméricos se firman en minúscula.
+    manifiesto += `id:${/^[a-z0-9]+$/i.test(dataId) ? dataId.toLowerCase() : dataId};`;
+  }
   if (requestId) manifiesto += `request-id:${requestId};`;
   manifiesto += `ts:${partes.ts};`;
 
