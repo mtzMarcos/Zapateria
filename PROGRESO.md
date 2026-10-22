@@ -2,7 +2,7 @@
 
 Última actualización: 2026-10-22
 
-## Etapa actual: 5 terminada y probada. Lo próximo es la Etapa 6 (pedidos en el panel)
+## Etapa actual: 6 (pedidos en el panel) hecha y probada automáticamente. Falta probarla a mano en el navegador
 
 ## Pendientes / bugs conocidos
 
@@ -37,7 +37,7 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 | 3 | Catálogo público con filtros y página de producto | ✅ Probado en el navegador con los datos de ejemplo |
 | 4 | Carrito y checkout (envío por zona o retiro en local) | ✅ Probado en el navegador |
 | 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | ✅ Probado (pago aprobado real en el navegador) |
-| 6 | Pedidos en el panel | Siguiente |
+| 6 | Pedidos en el panel | ✅ Probado (falta probar a mano en el navegador) |
 | 7 | Legales, SEO, dominio y lanzamiento | — |
 
 ## Decisiones tomadas
@@ -142,6 +142,28 @@ Probado a mano en el navegador el 2026-10-22: funciona.
 Nota: los pedidos todavía no se ven en el panel (eso es la Etapa 6). Mientras tanto se ven en
 Supabase → Table Editor → `orders` y `order_items`.
 
+## Qué se hizo (Etapa 6)
+
+- **Pedidos en el panel** (`/admin/pedidos`, es la primera pantalla al entrar al panel):
+  - Listado con filtros: **Para atender** (pagados, sin stock, en preparación, despachados, listos para retirar),
+    Sin pagar, Entregados, Cancelados y Todos, con la cantidad de cada uno. Búsqueda por número, nombre o email.
+  - Detalle: estado, cliente (email y teléfono con link), dirección o retiro, indicaciones del cliente,
+    productos, totales, pago de Mercado Pago (número de operación y fecha) y link a la página del pedido del cliente.
+  - **Cambio de estado** con botones según el estado y el tipo de entrega: pagado → en preparación →
+    despachado (envío) o listo para retirar (retiro) → entregado. "Pagado sin stock" → en preparación cuando se
+    consigue el producto. Si el pedido cambió mientras tanto (otra pestaña, un pago que llegó), no se pisa.
+  - **Cancelar** (excepto entregados): con la opción de devolver las unidades al stock si ya se habían descontado,
+    con la función SQL `cancelar_pedido` (`supabase/migrations/20261023000000_cancelar_pedido.sql`). No devuelve el
+    dinero: eso se hace desde Mercado Pago (el panel lo avisa).
+  - **Notas internas** editables; ahí están también los avisos automáticos de la Etapa 5.
+- Estados, nombres y pasos posibles en `src/lib/admin/pedidos.ts`.
+
+Migración SQL de cancelar corrida el 2026-10-22.
+Probado con un admin temporal (ya borrado) en un servidor de producción aparte (27 comprobaciones): login,
+filtros, búsqueda, detalle, cada cambio de estado, cambios no permitidos, pantalla desactualizada, retiro vs envío,
+notas, salir; cancelar reponiendo stock, sin reponer, "pagado sin stock" y sin pagar (no reponen), entregado no
+cancelable, la clave pública no puede cancelar. Capturas en modo claro y oscuro.
+
 ## Qué se hizo (Etapa 5)
 
 - **Pago con Mercado Pago Checkout Pro** (API REST, sin SDK): al confirmar el checkout se crea el pedido y un
@@ -188,9 +210,7 @@ cargar, borrar y cargar de nuevo. Jordan Air (el producto cargado a mano) no se 
 
 ## Qué sigue
 
-1. **Etapa 6: pedidos en el panel**: listado con filtros por estado, detalle (comprador, dirección, ítems, pago,
-   notas internas con los avisos de `admin_notes`) y cambio de estado (preparando, despachado, listo para
-   retirar, entregado, cancelado).
+1. Probar el panel de pedidos en el navegador (el pedido #1019 sirve para probar los botones).
 2. Subir a **Vercel** para probar la vuelta automática desde Mercado Pago y los webhooks (necesitan https):
    variables de entorno, `NEXT_PUBLIC_SITE_URL=https://…` y configurar el webhook en Mercado Pago (ver README).
 3. Mails automáticos: pendientes (ver Pendientes).

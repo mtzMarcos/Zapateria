@@ -3,6 +3,7 @@ import { tienda } from "@/config/tienda";
 import { cerrarSesion } from "../login/actions";
 
 const secciones = [
+  { href: "/admin/pedidos", nombre: "Pedidos" },
   { href: "/admin/productos", nombre: "Productos" },
   { href: "/admin/marcas", nombre: "Marcas" },
   { href: "/admin/categorias", nombre: "Categorías" },
@@ -16,7 +17,7 @@ export default function PanelLayout({ children }: LayoutProps<"/admin">) {
     <>
       <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-          <Link href="/admin/productos" className="font-bold">
+          <Link href="/admin/pedidos" className="font-bold">
             {tienda.nombre} · Panel
           </Link>
           <nav className="flex flex-wrap gap-4 text-sm">

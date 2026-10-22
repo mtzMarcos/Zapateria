@@ -7,7 +7,8 @@ Next.js 16 + Supabase + Mercado Pago (Checkout Pro), deploy en Vercel.
 1. Instalar dependencias: `npm install`
 2. Copiar `.env.example` como `.env.local` y completar las claves de Supabase.
 3. Base de datos: en Supabase → **SQL Editor**, pegar y ejecutar, en orden y una sola vez, cada archivo de
-   `supabase/migrations/` (`20261013000000_esquema_inicial.sql` y `20261022000000_pagos.sql`).
+   `supabase/migrations/` (`20261013000000_esquema_inicial.sql`, `20261022000000_pagos.sql` y
+   `20261023000000_cancelar_pedido.sql`).
 4. Levantar el servidor: `npm run dev` y abrir http://localhost:3000
 5. Crear el usuario administrador (ver abajo) y entrar a http://localhost:3000/admin
 
@@ -65,14 +66,14 @@ Checkout Pro: el comprador paga en la página de Mercado Pago. Variables en `.en
 src/
   app/                 Páginas (App Router)
   app/(tienda)/        Tienda pública: inicio, catálogo, producto, carrito, checkout y pedido
-  app/admin/           Panel de administración (login, productos, marcas, categorías, envíos)
+  app/admin/           Panel de administración (login, pedidos, productos, marcas, categorías, envíos)
   proxy.ts             Renueva la sesión y protege /admin
   components/admin/    Botones, mensajes y estilos del panel
   components/tienda/   Tarjetas y grilla de productos
   config/tienda.ts     Nombre y datos generales de la tienda
   lib/catalogo.ts      Consultas del catálogo (cacheadas con la etiqueta "catalogo")
   lib/filtros.ts       Filtros y orden del catálogo
-  lib/admin/           Verificación de admin (auth.ts) y opciones del panel
+  lib/admin/           Verificación de admin (auth.ts), estados de pedidos y opciones del panel
   lib/carrito.ts       Carrito (cookie) con precios y stock leídos de la base
   lib/form.ts          Utilidades de formularios (panel y tienda)
   lib/mercadopago.ts   API de Mercado Pago (cobros, pagos, firma de webhooks)

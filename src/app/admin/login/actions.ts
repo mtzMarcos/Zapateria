@@ -23,7 +23,7 @@ export async function iniciarSesion(
     return { error: "Esta cuenta no tiene permisos de administrador." };
   }
 
-  redirect("/admin/productos");
+  redirect("/admin/pedidos");
 }
 
 export async function cerrarSesion() {
