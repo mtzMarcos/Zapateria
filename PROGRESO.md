@@ -2,7 +2,9 @@
 
 Última actualización: 2026-10-22
 
-## Etapa actual: 6 terminada y probada. Lo próximo es subir a Vercel
+## Etapa actual: 6 terminada y probada, tienda en Vercel con el pago probado. Lo próximo: mails automáticos o Etapa 7
+
+Tienda online (prueba): https://zapateria-mu.vercel.app (Vercel, se publica sola con cada push a `main`).
 
 ## Pendientes / bugs conocidos
 
@@ -36,7 +38,7 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 | 2 | Panel de administración (login, productos, fotos, stock por talle) | ✅ Funciona (ver bug de marca/categoría en Pendientes) |
 | 3 | Catálogo público con filtros y página de producto | ✅ Probado en el navegador con los datos de ejemplo |
 | 4 | Carrito y checkout (envío por zona o retiro en local) | ✅ Probado en el navegador |
-| 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | ✅ Probado (pago aprobado real en el navegador) |
+| 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | ✅ Probado (en la PC y en Vercel con vuelta automática) |
 | 6 | Pedidos en el panel | ✅ Probado (también a mano en el navegador) |
 | 7 | Legales, SEO, dominio y lanzamiento | — |
 
@@ -198,7 +200,12 @@ credentials" aun con la Public Key (probablemente la aplicación está habilitad
 la tienda, que usa Checkout Pro.
 **Probado en el navegador el 2026-10-22:** pedido #1019 pagado con cuenta compradora de prueba y tarjeta `APRO`,
 confirmado con "Ya pagué": quedó `paid` y descontó el stock (Nike Air Max 90 talle 42: 2 → 1).
-Falta probar en Vercel la vuelta automática y el webhook (necesitan https).
+**Probado en Vercel el 2026-10-22:** webhook configurado en Mercado Pago (evento Pagos) y su clave en
+`MERCADOPAGO_WEBHOOK_SECRET`. Pedido #1032 (Adidas Adilette talle 40, operación 184528616557): Mercado Pago volvió
+solo a la página del pedido con "Pago aprobado"; en la base quedó `paid` con el número de operación y el stock
+bajó de 8 a 7. Un aviso al webhook sin firma es rechazado (401), así que la clave está cargada en Vercel.
+Que el aviso del webhook llegó con 200 se ve en Mercado Pago → Webhooks → historial de notificaciones (en la base no
+se distingue si confirmó el webhook o la vuelta del comprador, porque procesar el mismo pago dos veces no tiene efecto).
 
 ## Datos de ejemplo (2026-10-21)
 
@@ -211,10 +218,11 @@ cargar, borrar y cargar de nuevo. Jordan Air (el producto cargado a mano) no se 
 
 ## Qué sigue
 
-1. Subir a **Vercel** para probar la vuelta automática desde Mercado Pago y los webhooks (necesitan https):
-   variables de entorno, `NEXT_PUBLIC_SITE_URL=https://…` y configurar el webhook en Mercado Pago (ver README).
+1. ~~Subir a Vercel y probar la vuelta automática y el webhook~~ (hecho el 2026-10-22).
 2. Mails automáticos: pendientes (ver Pendientes).
-3. Etapa 7: legales, SEO, dominio y lanzamiento.
+3. Etapa 7: legales, SEO, dominio y lanzamiento. Al pasar al dominio propio: cambiar `NEXT_PUBLIC_SITE_URL` en
+   Vercel y la URL del webhook en Mercado Pago; al lanzar, credenciales de producción de la cuenta del cliente
+   (Access Token y un webhook nuevo con su propia clave secreta).
 
 ## Pendiente con el cliente
 
