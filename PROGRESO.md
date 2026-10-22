@@ -2,7 +2,7 @@
 
 Última actualización: 2026-10-22
 
-## Etapa actual: 5 (Mercado Pago) hecha en código. Falta probar un pago aprobado en el navegador
+## Etapa actual: 5 terminada y probada. Lo próximo es la Etapa 6 (pedidos en el panel)
 
 ## Pendientes / bugs conocidos
 
@@ -36,7 +36,7 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 | 2 | Panel de administración (login, productos, fotos, stock por talle) | ✅ Funciona (ver bug de marca/categoría en Pendientes) |
 | 3 | Catálogo público con filtros y página de producto | ✅ Probado en el navegador con los datos de ejemplo |
 | 4 | Carrito y checkout (envío por zona o retiro en local) | ✅ Probado en el navegador |
-| 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | ✅ Código listo, falta probar un pago aprobado en el navegador |
+| 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | ✅ Probado (pago aprobado real en el navegador) |
 | 6 | Pedidos en el panel | Siguiente |
 | 7 | Legales, SEO, dominio y lanzamiento | — |
 
@@ -170,9 +170,12 @@ Migración SQL corrida el 2026-10-22. `confirmar_pago` probada contra la base (1
 el mismo pago repetido no descuenta dos veces, rechazado y después aprobado, sin stock → `stock_issue` sin
 descontar, dos pagos simultáneos por la última unidad → uno `paid` y otro `stock_issue` (stock nunca negativo),
 la clave pública no puede llamarla.
-**Falta:** un pago aprobado real de punta a punta. Por API no se pudo: con credenciales de prueba, el token de
-tarjeta hecho con el Access Token sale como producción ("Unauthorized use of live credentials"); hace falta la
-Public Key. Se prueba en el navegador con una cuenta compradora de prueba.
+Pagos directos por API (`/v1/payments`) no se pudieron simular: Mercado Pago responde "Unauthorized use of live
+credentials" aun con la Public Key (probablemente la aplicación está habilitada solo para Checkout Pro). No afecta a
+la tienda, que usa Checkout Pro.
+**Probado en el navegador el 2026-10-22:** pedido #1019 pagado con cuenta compradora de prueba y tarjeta `APRO`,
+confirmado con "Ya pagué": quedó `paid` y descontó el stock (Nike Air Max 90 talle 42: 2 → 1).
+Falta probar en Vercel la vuelta automática y el webhook (necesitan https).
 
 ## Datos de ejemplo (2026-10-21)
 
@@ -185,12 +188,13 @@ cargar, borrar y cargar de nuevo. Jordan Air (el producto cargado a mano) no se 
 
 ## Qué sigue
 
-1. Probar un pago en el navegador con una **cuenta de prueba compradora** de Mercado Pago y una tarjeta de
-   prueba (titular `APRO`); al volver a la tienda, "Ya pagué: actualizar estado".
-2. Subir a **Vercel** para probar la vuelta automática y los webhooks (necesitan https): variables de entorno,
-   `NEXT_PUBLIC_SITE_URL=https://…`, y configurar el webhook en Mercado Pago (ver README).
-3. **Etapa 6: pedidos en el panel** (ver pedidos, notas, cambiar estado: preparando, despachado, etc.).
-4. Mails automáticos: pendientes (ver Pendientes).
+1. **Etapa 6: pedidos en el panel**: listado con filtros por estado, detalle (comprador, dirección, ítems, pago,
+   notas internas con los avisos de `admin_notes`) y cambio de estado (preparando, despachado, listo para
+   retirar, entregado, cancelado).
+2. Subir a **Vercel** para probar la vuelta automática desde Mercado Pago y los webhooks (necesitan https):
+   variables de entorno, `NEXT_PUBLIC_SITE_URL=https://…` y configurar el webhook en Mercado Pago (ver README).
+3. Mails automáticos: pendientes (ver Pendientes).
+4. Etapa 7: legales, SEO, dominio y lanzamiento.
 
 ## Pendiente con el cliente
 
