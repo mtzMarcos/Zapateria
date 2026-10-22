@@ -2,7 +2,7 @@
 
 Última actualización: 2026-10-22
 
-## Etapa actual: 6 terminada y probada, tienda en Vercel con el pago probado. Lo próximo: mails automáticos o Etapa 7
+## Etapa actual: 6 terminada, tienda en Vercel. Pendiente: el webhook de Mercado Pago da 401 (ver Pendientes)
 
 Tienda online (prueba): https://zapateria-mu.vercel.app (Vercel, se publica sola con cada push a `main`).
 
@@ -12,6 +12,21 @@ Tienda online (prueba): https://zapateria-mu.vercel.app (Vercel, se publica sola
   no había marcas ni categorías cargadas. Con los datos de ejemplo funciona.
   Mejora posible: mostrar un aviso con link a Marcas/Categorías cuando estén vacías.
 - [ ] Confirmar en el navegador que al editar un producto en el panel el cambio se ve enseguida en la tienda.
+- [ ] **El webhook de Mercado Pago responde 401 (firma inválida) con los avisos reales** (2026-10-22, sin resolver).
+  - Pagos: 184528616557 (#1032), 185569749738 (#1033) y 184533563631 (#1034). Los tres pedidos quedaron pagados
+    igual, porque la vuelta del comprador confirma el pago. El webhook es un respaldo (por ejemplo, si el comprador
+    cierra la pestaña antes de volver).
+  - La simulación de Mercado Pago ("URL de producción") sí pasa la firma: da 500, que es lo esperado porque el pago
+    simulado no existe. Las claves secretas de prueba y productivo son iguales. Un aviso sin firma da 401, así que la
+    clave está cargada en Vercel.
+  - En Mercado Pago los avisos reales figuran bajo "Ambiente: Prueba", aunque la API dice que el pago es productivo
+    (`live_mode: true`). Las compras se hicieron con usuarios de prueba.
+  - Ya probado sin éxito (commit `bcd6b75`): sacar `notification_url` de los cobros (los avisos salen solo del webhook
+    del panel) y armar la firma solo con el `data.id` de la URL. Desde ese commit, cada firma inválida deja en los
+    logs de Vercel la URL del aviso, `x-request-id` y `ts`.
+  - **Próximo paso:** el usuario pasa la línea completa del log de Vercel (Logs → buscar "firma inválida") de una
+    compra nueva. Si esa línea no aparece, el 401 no viene de nuestro código: revisar la URL del aviso en la pestaña
+    de Prueba de Mercado Pago y Vercel → Settings → Deployment Protection.
 - [ ] **Mails automáticos** (confirmación de pedido al comprador, aviso de pedido nuevo al dueño): pendientes,
   no entran en la Etapa 5. Mientras tanto la confirmación dice "te vamos a contactar".
 - [ ] **Antes de lanzar: `npm run ejemplo:borrar`** para sacar los datos de ejemplo (ver abajo).
@@ -38,7 +53,7 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 | 2 | Panel de administración (login, productos, fotos, stock por talle) | ✅ Funciona (ver bug de marca/categoría en Pendientes) |
 | 3 | Catálogo público con filtros y página de producto | ✅ Probado en el navegador con los datos de ejemplo |
 | 4 | Carrito y checkout (envío por zona o retiro en local) | ✅ Probado en el navegador |
-| 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | ✅ Probado (en la PC y en Vercel con vuelta automática) |
+| 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | ✅ Probado (en la PC y en Vercel con vuelta automática). Webhook: 401, ver Pendientes |
 | 6 | Pedidos en el panel | ✅ Probado (también a mano en el navegador) |
 | 7 | Legales, SEO, dominio y lanzamiento | — |
 
@@ -204,8 +219,8 @@ confirmado con "Ya pagué": quedó `paid` y descontó el stock (Nike Air Max 90 
 `MERCADOPAGO_WEBHOOK_SECRET`. Pedido #1032 (Adidas Adilette talle 40, operación 184528616557): Mercado Pago volvió
 solo a la página del pedido con "Pago aprobado"; en la base quedó `paid` con el número de operación y el stock
 bajó de 8 a 7. Un aviso al webhook sin firma es rechazado (401), así que la clave está cargada en Vercel.
-Que el aviso del webhook llegó con 200 se ve en Mercado Pago → Webhooks → historial de notificaciones (en la base no
-se distingue si confirmó el webhook o la vuelta del comprador, porque procesar el mismo pago dos veces no tiene efecto).
+**El webhook da 401 con los avisos reales** (en Mercado Pago → Webhooks → historial): sin resolver, ver Pendientes.
+Los pagos se confirman igual con la vuelta del comprador.
 
 ## Datos de ejemplo (2026-10-21)
 
@@ -218,7 +233,8 @@ cargar, borrar y cargar de nuevo. Jordan Air (el producto cargado a mano) no se 
 
 ## Qué sigue
 
-1. ~~Subir a Vercel y probar la vuelta automática y el webhook~~ (hecho el 2026-10-22).
+1. Arreglar el 401 del webhook de Mercado Pago (ver Pendientes). La tienda ya está en Vercel y la vuelta automática
+   desde Mercado Pago funciona.
 2. Mails automáticos: pendientes (ver Pendientes).
 3. Etapa 7: legales, SEO, dominio y lanzamiento. Al pasar al dominio propio: cambiar `NEXT_PUBLIC_SITE_URL` en
    Vercel y la URL del webhook en Mercado Pago; al lanzar, credenciales de producción de la cuenta del cliente
