@@ -2,7 +2,7 @@
 
 Última actualización: 2026-10-22
 
-## Etapa actual: 6 (pedidos en el panel) hecha y probada automáticamente. Falta probarla a mano en el navegador
+## Etapa actual: 6 terminada y probada. Lo próximo es subir a Vercel
 
 ## Pendientes / bugs conocidos
 
@@ -37,7 +37,7 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 | 3 | Catálogo público con filtros y página de producto | ✅ Probado en el navegador con los datos de ejemplo |
 | 4 | Carrito y checkout (envío por zona o retiro en local) | ✅ Probado en el navegador |
 | 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | ✅ Probado (pago aprobado real en el navegador) |
-| 6 | Pedidos en el panel | ✅ Probado (falta probar a mano en el navegador) |
+| 6 | Pedidos en el panel | ✅ Probado (también a mano en el navegador) |
 | 7 | Legales, SEO, dominio y lanzamiento | — |
 
 ## Decisiones tomadas
@@ -163,6 +163,7 @@ Probado con un admin temporal (ya borrado) en un servidor de producción aparte 
 filtros, búsqueda, detalle, cada cambio de estado, cambios no permitidos, pantalla desactualizada, retiro vs envío,
 notas, salir; cancelar reponiendo stock, sin reponer, "pagado sin stock" y sin pagar (no reponen), entregado no
 cancelable, la clave pública no puede cancelar. Capturas en modo claro y oscuro.
+**Probado a mano en el navegador el 2026-10-22:** el pedido #1019 pasó por todos los estados hasta Entregado.
 
 ## Qué se hizo (Etapa 5)
 
@@ -210,11 +211,10 @@ cargar, borrar y cargar de nuevo. Jordan Air (el producto cargado a mano) no se 
 
 ## Qué sigue
 
-1. Probar el panel de pedidos en el navegador (el pedido #1019 sirve para probar los botones).
-2. Subir a **Vercel** para probar la vuelta automática desde Mercado Pago y los webhooks (necesitan https):
+1. Subir a **Vercel** para probar la vuelta automática desde Mercado Pago y los webhooks (necesitan https):
    variables de entorno, `NEXT_PUBLIC_SITE_URL=https://…` y configurar el webhook en Mercado Pago (ver README).
-3. Mails automáticos: pendientes (ver Pendientes).
-4. Etapa 7: legales, SEO, dominio y lanzamiento.
+2. Mails automáticos: pendientes (ver Pendientes).
+3. Etapa 7: legales, SEO, dominio y lanzamiento.
 
 ## Pendiente con el cliente
 
