@@ -14,7 +14,7 @@ export function BotonAccion({
     <button
       type="submit"
       disabled={pending || disabled}
-      className={`disabled:cursor-not-allowed disabled:opacity-40 ${className ?? ""}`}
+      className={`disabled:cursor-not-allowed disabled:text-neutral-400 ${className ?? ""}`}
       {...props}
     >
       {children}

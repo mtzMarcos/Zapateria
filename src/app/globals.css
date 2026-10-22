@@ -1,26 +1,84 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* Gris de los textos secundarios un poco más oscuro que el de Tailwind
+   (#737373) para que se lea bien también sobre fondos grises claros. */
+@theme {
+  --color-neutral-500: #666666;
+}
+
+/*
+ * Modo claro y oscuro
+ *
+ * Toda la tienda y el panel usan la escala neutral-* más white, y unos pocos
+ * colores de estado (red, green, amber). En vez de escribir dark:… en cada
+ * componente, en modo oscuro se invierte la escala: "white" pasa a ser el
+ * fondo oscuro y neutral-900 el texto claro. Así cada combinación pensada para
+ * el modo claro (texto 900 sobre fondo white, botón bg-900 con texto white…)
+ * mantiene el contraste en el modo oscuro.
+ *
+ * Regla para el código nuevo: usar solo estos colores, con el criterio del
+ * modo claro, y el modo oscuro sale solo.
+ */
+:root {
+  color-scheme: light;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Que los controles nativos (listas de los desplegables, casillas,
+       barras de scroll) también se dibujen oscuros. */
+    color-scheme: dark;
+
+    --color-white: #121212;
+    --color-neutral-50: #0a0a0a;
+    --color-neutral-100: #1f1f1f;
+    --color-neutral-200: #2e2e2e;
+    --color-neutral-300: #525252;
+    --color-neutral-400: #7a7a7a;
+    --color-neutral-500: #a3a3a3;
+    --color-neutral-600: #c2c2c2;
+    --color-neutral-700: #d4d4d4;
+    --color-neutral-800: #e5e5e5;
+    --color-neutral-900: #f0f0f0;
+    --color-neutral-950: #fafafa;
+
+    --color-red-50: #2b1111;
+    --color-red-300: #991b1b;
+    --color-red-700: #f87171;
+    --color-red-800: #fca5a5;
+    --color-green-700: #4ade80;
+    --color-amber-700: #fbbf24;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  body {
+    background: var(--color-white);
+    color: var(--color-neutral-900);
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  /* Campos de formulario: mismo fondo y texto que la página, también en las
+     opciones de los desplegables (algunos navegadores no las heredan). */
+  input,
+  select,
+  textarea {
+    background-color: var(--color-white);
+    color: var(--color-neutral-900);
+  }
+
+  option {
+    background-color: var(--color-white);
+    color: var(--color-neutral-900);
+  }
+
+  ::placeholder {
+    color: var(--color-neutral-500);
+    opacity: 1;
+  }
 }

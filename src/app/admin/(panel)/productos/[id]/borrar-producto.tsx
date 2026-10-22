@@ -36,7 +36,7 @@ export function BorrarProducto({ productId }: { productId: string }) {
               if (resultado?.error) setError(resultado.error);
             })
           }
-          className="inline-flex items-center rounded-md bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800 disabled:opacity-50"
+          className="inline-flex items-center rounded-md bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800 disabled:bg-neutral-300 disabled:text-neutral-700"
         >
           {pendiente ? "Eliminando…" : "Sí, eliminar"}
         </button>

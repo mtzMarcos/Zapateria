@@ -30,7 +30,7 @@ function ProductoCard({ producto }: { producto: ProductoResumen }) {
             className={`object-cover transition-transform duration-300 group-hover:scale-105 ${agotado ? "opacity-60" : ""}`}
           />
         ) : (
-          <span className="flex h-full items-center justify-center text-sm text-neutral-400">
+          <span className="flex h-full items-center justify-center text-sm text-neutral-500">
             Sin foto
           </span>
         )}

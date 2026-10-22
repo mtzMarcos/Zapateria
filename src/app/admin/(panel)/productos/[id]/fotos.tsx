@@ -104,7 +104,7 @@ export function Fotos({ productId, fotos }: { productId: string; fotos: Foto[] }
       )}
 
       <label
-        className={`flex cursor-pointer flex-col items-center rounded-md border-2 border-dashed border-neutral-300 p-6 text-center text-sm hover:border-neutral-500 ${ocupado ? "pointer-events-none opacity-50" : ""}`}
+        className={`flex cursor-pointer flex-col items-center rounded-md border-2 border-dashed border-neutral-300 p-6 text-center text-sm hover:border-neutral-500 ${ocupado ? "pointer-events-none border-neutral-200" : ""}`}
       >
         <span className="font-medium">
           {subiendo ? "Subiendo fotos…" : pendiente ? "Guardando…" : "Elegir fotos para subir"}

@@ -45,6 +45,9 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 - Compra como invitado (sin cuentas de clientes).
 - Emails transaccionales: postergados para más adelante.
 - El stock se descuenta solo cuando el webhook de Mercado Pago confirma el pago aprobado.
+- Modo claro y oscuro (según el sistema): en `src/app/globals.css` el modo oscuro invierte la escala de grises
+  (`white`, `neutral-*`) y ajusta rojo/verde/ámbar. **Regla para código nuevo:** usar solo esos colores pensando
+  en el modo claro, sin `dark:`. Contraste de textos revisado (mínimo 4.5:1 en ambos modos, 2026-10-22).
 
 ## Qué se hizo (Etapa 1)
 

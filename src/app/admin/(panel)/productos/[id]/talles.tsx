@@ -62,7 +62,7 @@ function FilaTalle({ productId, talle }: { productId: string; talle: Talle }) {
             type="submit"
             title={`Quitar talle ${talle.size}`}
             aria-label={`Quitar talle ${talle.size}`}
-            className="px-1 text-neutral-400 hover:text-red-700"
+            className="px-1 text-neutral-500 hover:text-red-700"
           >
             ✕
           </button>

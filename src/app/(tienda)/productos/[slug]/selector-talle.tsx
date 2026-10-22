@@ -33,7 +33,7 @@ export function SelectorTalle({ talles }: { talles: Talle[] }) {
                   elegido === t.id
                     ? "border-neutral-900 bg-neutral-900 text-white"
                     : "border-neutral-300 hover:border-neutral-900"
-                } disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-300 disabled:line-through`}
+                } disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-500 disabled:line-through`}
               >
                 {t.size}
               </button>
@@ -46,7 +46,7 @@ export function SelectorTalle({ talles }: { talles: Talle[] }) {
       <button
         type="submit"
         disabled={!elegido || enviando}
-        className="mt-6 w-full rounded-md bg-neutral-900 px-6 py-3 font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-6 w-full rounded-md bg-neutral-900 px-6 py-3 font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-700"
       >
         {enviando ? "Agregando…" : elegido ? "Agregar al carrito" : "Elegí un talle"}
       </button>

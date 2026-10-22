@@ -8,7 +8,7 @@ export function Galeria({ fotos, nombre }: { fotos: string[]; nombre: string }) 
 
   if (fotos.length === 0) {
     return (
-      <div className="flex aspect-square items-center justify-center rounded-lg bg-neutral-100 text-neutral-400">
+      <div className="flex aspect-square items-center justify-center rounded-lg bg-neutral-100 text-neutral-500">
         Sin foto
       </div>
     );

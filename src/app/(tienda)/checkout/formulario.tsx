@@ -154,7 +154,7 @@ export function FormularioCheckout({
       <button
         type="submit"
         disabled={enviando}
-        className="w-full rounded-md bg-neutral-900 px-6 py-3 font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+        className="w-full rounded-md bg-neutral-900 px-6 py-3 font-medium text-white hover:bg-neutral-700 disabled:bg-neutral-300 disabled:text-neutral-700"
       >
         {enviando ? "Registrando pedido…" : "Confirmar pedido"}
       </button>
