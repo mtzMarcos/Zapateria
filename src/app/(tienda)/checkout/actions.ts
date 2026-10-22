@@ -4,16 +4,19 @@ import { redirect } from "next/navigation";
 import { detalleCarrito, guardarCarrito, leerCarrito, problemaItem, subtotal } from "@/lib/carrito";
 import { obtenerZonas } from "@/lib/envios";
 import { texto } from "@/lib/form";
+import { sitioPublico } from "@/lib/mercadopago";
+import { iniciarPago } from "@/lib/pagos";
 import { createServiceClient } from "@/lib/supabase/service";
 import { campos, validar, type EstadoCheckout, type Valores } from "./datos";
 
 /**
- * Crea el pedido con estado "esperando el pago".
+ * Crea el pedido con estado "esperando el pago" y manda al comprador a pagar
+ * a Mercado Pago.
  *
  * Todo lo que importa se recalcula acá con datos de la base: precios, stock
  * y costo de envío. Lo que mande el navegador solo se usa para los datos
- * del comprador. El stock NO se descuenta todavía: se descuenta cuando
- * Mercado Pago confirme el pago (Etapa 5).
+ * del comprador. El stock NO se descuenta acá: se descuenta cuando Mercado
+ * Pago confirma el pago (src/lib/pagos.ts).
  */
 export async function crearPedido(
   _estado: EstadoCheckout,
@@ -90,7 +93,24 @@ export async function crearPedido(
     return { error: "No pudimos registrar el pedido. Probá de nuevo en unos minutos.", valores };
   }
 
-  // En la Etapa 5, en lugar de ir a la confirmación se va a pagar a Mercado Pago.
+  let urlPago: string;
+  try {
+    urlPago = await iniciarPago(pedido.id);
+  } catch (errorPago) {
+    // Sin cobro el pedido no sirve: se borra y el comprador conserva su carrito.
+    console.error("No se pudo crear el cobro en Mercado Pago:", errorPago);
+    await supabase.from("orders").delete().eq("id", pedido.id);
+    return {
+      error: "No pudimos conectar con Mercado Pago. Probá de nuevo en unos minutos.",
+      valores,
+    };
+  }
+
+  // El carrito se vacía al ir a pagar. Si el comprador no termina de pagar,
+  // desde la página del pedido puede volver a intentarlo.
   await guardarCarrito([]);
-  redirect(`/pedido/${pedido.id}`);
+  // En la PC de desarrollo Mercado Pago no vuelve a la tienda después de
+  // pagar: se pasa primero por la página del pedido, que tiene el botón para
+  // pagar y el de "Ya pagué" para actualizar el estado.
+  redirect(sitioPublico() ? urlPago : `/pedido/${pedido.id}`);
 }

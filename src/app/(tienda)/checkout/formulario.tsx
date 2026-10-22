@@ -156,8 +156,11 @@ export function FormularioCheckout({
         disabled={enviando}
         className="w-full rounded-md bg-neutral-900 px-6 py-3 font-medium text-white hover:bg-neutral-700 disabled:bg-neutral-300 disabled:text-neutral-700"
       >
-        {enviando ? "Registrando pedido…" : "Confirmar pedido"}
+        {enviando ? "Conectando con Mercado Pago…" : "Ir a pagar con Mercado Pago"}
       </button>
+      <p className="-mt-4 text-center text-sm text-neutral-500">
+        Pagás en Mercado Pago con tarjeta, dinero en cuenta u otros medios.
+      </p>
     </form>
   );
 }

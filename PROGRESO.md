@@ -2,7 +2,7 @@
 
 Última actualización: 2026-10-22
 
-## Etapa actual: 4 terminada y probada. Lo próximo es la Etapa 5 (Mercado Pago)
+## Etapa actual: 5 (Mercado Pago) hecha en código. Falta probar un pago aprobado en el navegador
 
 ## Pendientes / bugs conocidos
 
@@ -36,8 +36,8 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 | 2 | Panel de administración (login, productos, fotos, stock por talle) | ✅ Funciona (ver bug de marca/categoría en Pendientes) |
 | 3 | Catálogo público con filtros y página de producto | ✅ Probado en el navegador con los datos de ejemplo |
 | 4 | Carrito y checkout (envío por zona o retiro en local) | ✅ Probado en el navegador |
-| 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | Siguiente |
-| 6 | Pedidos en el panel | — |
+| 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | ✅ Código listo, falta probar un pago aprobado en el navegador |
+| 6 | Pedidos en el panel | Siguiente |
 | 7 | Legales, SEO, dominio y lanzamiento | — |
 
 ## Decisiones tomadas
@@ -142,6 +142,38 @@ Probado a mano en el navegador el 2026-10-22: funciona.
 Nota: los pedidos todavía no se ven en el panel (eso es la Etapa 6). Mientras tanto se ven en
 Supabase → Table Editor → `orders` y `order_items`.
 
+## Qué se hizo (Etapa 5)
+
+- **Pago con Mercado Pago Checkout Pro** (API REST, sin SDK): al confirmar el checkout se crea el pedido y un
+  cobro ("preferencia") con los montos del pedido en la base (productos + envío). Vence a las 48 h.
+- **Confirmación del pago** (`src/lib/pagos.ts`): siempre se consulta el pago a la API de Mercado Pago. Si está
+  aprobado, es en pesos y el monto es igual al total, la función SQL `confirmar_pago`
+  (`supabase/migrations/20261022000000_pagos.sql`) descuenta el stock y marca el pedido `paid` en una sola
+  transacción, bloqueando los talles para que dos pagos no vendan la misma unidad. Si ya no hay stock: `stock_issue`
+  sin descontar nada y con una nota para el dueño. Rechazado → `payment_rejected` (se puede reintentar).
+  Pago duplicado, monto distinto, devolución o contracargo → nota en `admin_notes` (se verán en la Etapa 6).
+  Después de descontar stock se refresca la caché del catálogo (`revalidateTag("catalogo", { expire: 0 })`).
+- **Tres caminos que procesan el pago** (repetirlos no tiene efecto): webhook `/api/mercadopago/webhook`
+  (verifica la firma si hay `MERCADOPAGO_WEBHOOK_SECRET`), la vuelta del comprador `/api/mercadopago/retorno`, y el
+  botón **"Ya pagué: actualizar estado"** de la página del pedido (busca los pagos del pedido en Mercado Pago).
+- **Página del pedido** según el estado: pagado, en proceso, falta el pago (botón "Pagar con Mercado Pago"),
+  rechazado ("Intentar de nuevo"), sin stock o cancelado.
+- **Limitación de la PC:** Mercado Pago solo acepta direcciones https para volver a la tienda y para los webhooks.
+  Con `http://localhost` el checkout lleva primero a la página del pedido; se paga desde ahí y al volver se usa
+  "Ya pagué". En Vercel (https) el checkout va directo a Mercado Pago y vuelve solo.
+- El cliente de Supabase con clave secreta ahora también usa `cache: "no-store"` (estado de pedidos siempre actual).
+
+Probado contra un servidor de producción aparte (18 comprobaciones): pedido → cobro con total, ítems y
+external_reference correctos; página del pedido; "Ya pagué" sin pagos; retorno; reintentar el pago; webhook
+(otros avisos, sin firma, firma falsa, firma válida, id inválido).
+Migración SQL corrida el 2026-10-22. `confirmar_pago` probada contra la base (11 comprobaciones): descuenta stock,
+el mismo pago repetido no descuenta dos veces, rechazado y después aprobado, sin stock → `stock_issue` sin
+descontar, dos pagos simultáneos por la última unidad → uno `paid` y otro `stock_issue` (stock nunca negativo),
+la clave pública no puede llamarla.
+**Falta:** un pago aprobado real de punta a punta. Por API no se pudo: con credenciales de prueba, el token de
+tarjeta hecho con el Access Token sale como producción ("Unauthorized use of live credentials"); hace falta la
+Public Key. Se prueba en el navegador con una cuenta compradora de prueba.
+
 ## Datos de ejemplo (2026-10-21)
 
 `scripts/datos-ejemplo.mjs`, con `npm run ejemplo:cargar` y `npm run ejemplo:borrar` (detalle en el README).
@@ -153,11 +185,12 @@ cargar, borrar y cargar de nuevo. Jordan Air (el producto cargado a mano) no se 
 
 ## Qué sigue
 
-1. **Etapa 5: Mercado Pago Checkout Pro.** Necesita las credenciales de prueba de Mercado Pago
-   (Public Key y Access Token) en `.env.local`. El checkout pasa a mandar a pagar a Mercado Pago, y el webhook
-   tiene que marcar el pedido como pagado, descontar stock y llamar a `revalidateTag("catalogo")`.
-2. Mails automáticos: pendientes (ver Pendientes).
-3. (Opcional) Conectar el repositorio con Vercel y cargar las mismas variables de entorno.
+1. Probar un pago en el navegador con una **cuenta de prueba compradora** de Mercado Pago y una tarjeta de
+   prueba (titular `APRO`); al volver a la tienda, "Ya pagué: actualizar estado".
+2. Subir a **Vercel** para probar la vuelta automática y los webhooks (necesitan https): variables de entorno,
+   `NEXT_PUBLIC_SITE_URL=https://…`, y configurar el webhook en Mercado Pago (ver README).
+3. **Etapa 6: pedidos en el panel** (ver pedidos, notas, cambiar estado: preparando, despachado, etc.).
+4. Mails automáticos: pendientes (ver Pendientes).
 
 ## Pendiente con el cliente
 
