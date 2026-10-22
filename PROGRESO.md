@@ -1,8 +1,8 @@
 # Progreso del proyecto
 
-Última actualización: 2026-10-21
+Última actualización: 2026-10-22
 
-## Etapa actual: 4 (carrito y checkout) hecha en código, falta probarla en el navegador
+## Etapa actual: 4 terminada y probada. Lo próximo es la Etapa 5 (Mercado Pago)
 
 ## Pendientes / bugs conocidos
 
@@ -10,6 +10,8 @@
   no había marcas ni categorías cargadas. Con los datos de ejemplo funciona.
   Mejora posible: mostrar un aviso con link a Marcas/Categorías cuando estén vacías.
 - [ ] Confirmar en el navegador que al editar un producto en el panel el cambio se ve enseguida en la tienda.
+- [ ] **Mails automáticos** (confirmación de pedido al comprador, aviso de pedido nuevo al dueño): pendientes,
+  no entran en la Etapa 5. Mientras tanto la confirmación dice "te vamos a contactar".
 - [ ] **Antes de lanzar: `npm run ejemplo:borrar`** para sacar los datos de ejemplo (ver abajo).
 
 Repositorio: https://github.com/mtzMarcos/Zapateria (privado, rama `main`).
@@ -33,7 +35,7 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 | 1 | Base del proyecto y modelo de datos | ✅ Probado con Supabase |
 | 2 | Panel de administración (login, productos, fotos, stock por talle) | ✅ Funciona (ver bug de marca/categoría en Pendientes) |
 | 3 | Catálogo público con filtros y página de producto | ✅ Probado en el navegador con los datos de ejemplo |
-| 4 | Carrito y checkout (envío por zona o retiro en local) | ✅ Código listo, falta probar a mano en el navegador |
+| 4 | Carrito y checkout (envío por zona o retiro en local) | ✅ Probado en el navegador |
 | 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | Siguiente |
 | 6 | Pedidos en el panel | — |
 | 7 | Legales, SEO, dominio y lanzamiento | — |
@@ -43,7 +45,7 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 - Stack: Next.js 16 + Supabase + Mercado Pago Checkout Pro + Vercel.
 - Envíos: costo fijo por zona + retiro en local. **Los precios de las zonas son de ejemplo** (CABA $6.000, GBA $8.500, Interior $12.000); definirlos con el cliente.
 - Compra como invitado (sin cuentas de clientes).
-- Emails transaccionales: postergados para más adelante.
+- Emails transaccionales: postergados para más adelante (ver Pendientes).
 - El stock se descuenta solo cuando el webhook de Mercado Pago confirma el pago aprobado.
 - Modo claro y oscuro (según el sistema): en `src/app/globals.css` el modo oscuro invierte la escala de grises
   (`white`, `neutral-*`) y ajusta rojo/verde/ámbar. **Regla para código nuevo:** usar solo esos colores pensando
@@ -135,7 +137,7 @@ Probado en un servidor de producción aparte, mandando los formularios como un n
 (29 comprobaciones): agregar, tope de stock, contador, +/−, aviso y ajuste cuando baja el stock,
 validaciones del checkout, pedido con envío (totales recalculados aunque se mande un total falso),
 pedido con retiro, carrito vacío, confirmación y pedido inexistente. Los pedidos de prueba se borraron.
-**Falta probar a mano en el navegador** (con JavaScript: cambiar entre envío/retiro, el total al elegir zona).
+Probado a mano en el navegador el 2026-10-22: funciona.
 
 Nota: los pedidos todavía no se ven en el panel (eso es la Etapa 6). Mientras tanto se ven en
 Supabase → Table Editor → `orders` y `order_items`.
@@ -151,10 +153,10 @@ cargar, borrar y cargar de nuevo. Jordan Air (el producto cargado a mano) no se 
 
 ## Qué sigue
 
-1. Probar en el navegador: agregar productos, cambiar cantidades, hacer un pedido con envío y otro con
-   retiro, y verlos en Supabase (`orders`). Los pedidos de prueba se pueden borrar desde ahí.
-2. **Etapa 5: Mercado Pago Checkout Pro** (necesita las credenciales de prueba de Mercado Pago).
-   El webhook tiene que descontar stock y llamar a `revalidateTag("catalogo")`.
+1. **Etapa 5: Mercado Pago Checkout Pro.** Necesita las credenciales de prueba de Mercado Pago
+   (Public Key y Access Token) en `.env.local`. El checkout pasa a mandar a pagar a Mercado Pago, y el webhook
+   tiene que marcar el pedido como pagado, descontar stock y llamar a `revalidateTag("catalogo")`.
+2. Mails automáticos: pendientes (ver Pendientes).
 3. (Opcional) Conectar el repositorio con Vercel y cargar las mismas variables de entorno.
 
 ## Pendiente con el cliente
