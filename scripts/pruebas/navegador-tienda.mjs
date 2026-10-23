@@ -82,6 +82,21 @@ try {
   check(await nav.hasta(`document.querySelectorAll("form[role=search] li a").length > 0`, 5000), "buscador de la compu: sugerencias debajo del campo");
   const card = `document.querySelector('a[href="/productos/ejemplo-nike-air-max-90"]')`;
   check(await nav.evaluar(`${card}.querySelectorAll("img").length === 1`), "tarjeta: una sola foto (sin cambio al pasar el mouse)");
+  // Zoom al pasar el mouse: animado (no de golpe), también en las fotos con fundido de carga.
+  await nav.evaluar("window.scrollTo(0, document.body.scrollHeight)");
+  await espera(1500);
+  const fotoAbajo = `[...document.querySelectorAll("li.subir img")].at(-1)`;
+  await nav.evaluar(`${fotoAbajo}.scrollIntoView({ block: "center" })`);
+  await espera(600);
+  const centro = await nav.evaluar(`(() => { const b = ${fotoAbajo}.getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; })()`);
+  await nav.cdp("Input.dispatchMouseEvent", { type: "mouseMoved", x: centro.x, y: centro.y });
+  await espera(150);
+  const aMitad = await nav.evaluar(`parseFloat(getComputedStyle(${fotoAbajo}).scale)`);
+  await espera(700);
+  const alFinal = await nav.evaluar(`parseFloat(getComputedStyle(${fotoAbajo}).scale)`);
+  check(aMitad > 1 && aMitad < 1.05 && alFinal === 1.05, `zoom al pasar el mouse: animado hasta 5 % (${aMitad.toFixed(3)} → ${alFinal})`);
+  await nav.cdp("Input.dispatchMouseEvent", { type: "mouseMoved", x: 1, y: 1 });
+  await nav.evaluar("window.scrollTo(0, 0)");
   // Las fotos que se ven al abrir llegan visibles en el HTML; las de más abajo se funden al cargar.
   await nav.evaluar("window.scrollTo(0, document.body.scrollHeight)");
   check(await nav.hasta(`document.querySelectorAll("img.foto-suave[data-cargada]").length > 0`, 8000), "las fotos de más abajo aparecen con un fundido al cargar");
@@ -89,9 +104,12 @@ try {
   // Carrusel de la portada: fundido cruzado.
   const portadas = `[...document.querySelectorAll('[aria-roledescription="diapositiva"]')]`;
   if (await nav.evaluar(`${portadas}.length > 1`)) {
-    await nav.evaluar(`document.querySelector('[aria-label="Portada siguiente"]').click()`);
-    check(await nav.hasta(`${portadas}[1].getAttribute("aria-hidden") === "false"`, 3000), "carrusel: la flecha pasa a la portada siguiente");
-    check(await nav.evaluar(`getComputedStyle(${portadas}[1]).transitionDuration === "0.7s" && ${portadas}[0].inert`), "carrusel: fundido cruzado (700 ms) y la portada oculta no recibe clics");
+    // La que se ve justo antes del clic (el carrusel pasa solo cada 6 segundos).
+    const antes = await nav.evaluar(`(() => { document.querySelector('[aria-label="Portada siguiente"]').click(); return ${portadas}.findIndex((p) => p.getAttribute("aria-hidden") === "false"); })()`);
+    const total = await nav.evaluar(`${portadas}.length`);
+    const siguiente = (antes + 1) % total;
+    check(await nav.hasta(`${portadas}[${siguiente}].getAttribute("aria-hidden") === "false"`, 3000), "carrusel: la flecha pasa a la portada siguiente");
+    check(await nav.evaluar(`getComputedStyle(${portadas}[${siguiente}]).transitionDuration === "0.7s" && ${portadas}[${antes}].inert`), "carrusel: fundido cruzado (700 ms) y la portada oculta no recibe clics");
   }
   await nav.evaluar(`${card}.click()`);
   check(await nav.hasta(`location.pathname === "/productos/ejemplo-nike-air-max-90" && window.__transiciones.length > 0`), "navegar de la tarjeta al producto inicia una transición");

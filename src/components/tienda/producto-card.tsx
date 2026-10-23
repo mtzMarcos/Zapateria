@@ -70,7 +70,7 @@ function ProductoCard({
                 loading={prioridad ? "eager" : "lazy"}
                 fetchPriority={prioridad ? "high" : undefined}
                 sizes={TAMANIOS}
-                className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+                className="object-cover transition-[scale] duration-500 ease-out group-hover:scale-105"
               />
             ) : (
               <span className="flex h-full items-center justify-center text-sm text-neutral-500">

@@ -203,7 +203,11 @@
    Foto; solo las que todavía no cargaron cuando arranca el JavaScript). */
 .foto-suave {
   opacity: 0;
-  transition: opacity 400ms ease-out;
+  /* Esta regla le gana a las clases de Tailwind: por eso declara también la
+     transición del zoom de las tarjetas (scale), si no el zoom sería de golpe. */
+  transition:
+    opacity 400ms ease-out,
+    scale 500ms ease-out;
 }
 .foto-suave[data-cargada] {
   opacity: 1;
