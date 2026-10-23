@@ -26,10 +26,27 @@ export default function CarritoPage() {
     <main className="mx-auto w-full max-w-4xl px-4 pt-6 pb-32 md:py-8">
       <PasosCompra actual={0} />
       <h1 className="mb-6 text-2xl font-bold md:mb-8 md:text-3xl">Carrito</h1>
-      <Suspense fallback={<div className="h-40 animate-pulse rounded-lg bg-neutral-100" />}>
+      <Suspense fallback={<CarritoCargando />}>
         <ContenidoCarrito />
       </Suspense>
     </main>
+  );
+}
+
+/** Mientras carga: una fila de producto y el resumen, para que nada salte al llegar. */
+function CarritoCargando() {
+  return (
+    <div className="grid gap-8 md:grid-cols-[1fr_18rem]" aria-hidden>
+      <div className="flex gap-4 border-y border-neutral-200 py-4">
+        <div className="size-24 shrink-0 animate-pulse rounded-md bg-neutral-100" />
+        <div className="flex-1 space-y-2">
+          <div className="h-5 w-2/3 animate-pulse rounded bg-neutral-100" />
+          <div className="h-4 w-1/3 animate-pulse rounded bg-neutral-100" />
+          <div className="mt-4 h-10 w-28 animate-pulse rounded bg-neutral-100" />
+        </div>
+      </div>
+      <div className="h-32 animate-pulse rounded-lg bg-neutral-100 md:h-48" />
+    </div>
   );
 }
 
@@ -133,7 +150,7 @@ function FilaItem({ item }: { item: ItemCarrito }) {
         className="relative size-24 shrink-0 overflow-hidden rounded-md bg-neutral-100"
       >
         {item.foto && (
-          <Image src={item.foto} alt={item.nombre} fill sizes="96px" className="object-cover" />
+          <Image src={item.foto} alt={item.nombre} fill loading="eager" sizes="96px" className="object-cover" />
         )}
       </Link>
 
