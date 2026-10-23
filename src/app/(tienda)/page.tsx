@@ -51,7 +51,7 @@ export default async function Home() {
           )}
         </div>
         {novedades.length > 0 ? (
-          <GrillaProductos productos={novedades} />
+          <GrillaProductos productos={novedades} prioridad={4} />
         ) : (
           <p className="text-neutral-500">Muy pronto vas a encontrar nuestros productos acá.</p>
         )}

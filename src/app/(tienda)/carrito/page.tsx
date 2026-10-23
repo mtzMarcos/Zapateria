@@ -12,6 +12,7 @@ import {
 } from "@/lib/carrito";
 import { formatearPrecio } from "@/lib/formato";
 import { BotonAccion } from "@/components/tienda/boton-accion";
+import { PasosCompra } from "@/components/tienda/pasos-compra";
 import { ajustarAlStock, cambiarCantidad, quitarDelCarrito } from "./actions";
 
 export const metadata: Metadata = {
@@ -21,8 +22,10 @@ export const metadata: Metadata = {
 
 export default function CarritoPage() {
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold">Carrito</h1>
+    // Abajo deja lugar para la barra fija de "Continuar compra" del celular.
+    <main className="mx-auto w-full max-w-4xl px-4 pt-6 pb-32 md:py-8">
+      <PasosCompra actual={0} />
+      <h1 className="mb-6 text-2xl font-bold md:mb-8 md:text-3xl">Carrito</h1>
       <Suspense fallback={<div className="h-40 animate-pulse rounded-lg bg-neutral-100" />}>
         <ContenidoCarrito />
       </Suspense>
@@ -84,12 +87,29 @@ async function ContenidoCarrito() {
             </form>
           </div>
         ) : (
-          <Link
-            href="/checkout"
-            className="mt-5 block rounded-md bg-neutral-900 px-5 py-3 text-center font-medium text-white hover:bg-neutral-700"
-          >
-            Continuar compra
-          </Link>
+          <>
+            <Link
+              href="/checkout"
+              className="mt-5 hidden rounded-md bg-neutral-900 px-5 py-3 text-center font-medium text-white hover:bg-neutral-700 md:block"
+            >
+              Continuar compra
+            </Link>
+            {/* En el celular, fijo abajo con el subtotal. */}
+            <div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-4 border-t border-neutral-200 bg-white px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden">
+              <p className="shrink-0 text-sm text-neutral-500">
+                Subtotal
+                <span className="block text-lg font-semibold text-neutral-900">
+                  {formatearPrecio(subtotal(items))}
+                </span>
+              </p>
+              <Link
+                href="/checkout"
+                className="w-full rounded-md bg-neutral-900 px-5 py-3 text-center font-medium text-white hover:bg-neutral-700"
+              >
+                Continuar compra
+              </Link>
+            </div>
+          </>
         )}
         <Link
           href="/productos"
@@ -132,7 +152,7 @@ function FilaItem({ item }: { item: ItemCarrito }) {
         <div className="mt-auto flex items-center gap-4 pt-2">
           <div className="flex items-center rounded-md border border-neutral-300">
             <form action={cambiarCantidad.bind(null, item.varianteId, item.cantidad - 1)}>
-              <BotonAccion aria-label="Quitar una unidad" className="px-3 py-1">
+              <BotonAccion aria-label="Quitar una unidad" className="flex size-10 items-center justify-center">
                 −
               </BotonAccion>
             </form>
@@ -143,7 +163,7 @@ function FilaItem({ item }: { item: ItemCarrito }) {
               <BotonAccion
                 aria-label="Agregar una unidad"
                 disabled={item.cantidad >= tope}
-                className="px-3 py-1"
+                className="flex size-10 items-center justify-center"
               >
                 +
               </BotonAccion>

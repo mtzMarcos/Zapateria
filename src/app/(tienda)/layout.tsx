@@ -3,15 +3,18 @@ import { Suspense } from "react";
 import { faltaCompletar, tienda } from "@/config/tienda";
 import { CarritoLink, CarritoLinkVacio } from "@/components/tienda/carrito-link";
 import { Dato } from "@/components/tienda/dato";
+import { MenuMovil } from "@/components/tienda/menu-movil";
 import { obtenerCatalogo } from "@/lib/catalogo";
 import { opcionesDeFiltro } from "@/lib/filtros";
 
 export default function TiendaLayout({ children }: LayoutProps<"/">) {
   return (
     <>
-      <header className="border-b border-neutral-200">
-        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-8 gap-y-2 px-4 py-4">
-          <Link href="/" className="text-xl font-bold">
+      {/* Fijo arriba al bajar. En el celular: menú, nombre y carrito en una línea. */}
+      <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white">
+        <div className="relative mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-4 md:h-16 md:gap-8">
+          <MenuCelular />
+          <Link href="/" className="text-lg font-bold md:text-xl">
             {tienda.nombre}
           </Link>
           <Navegacion />
@@ -149,23 +152,34 @@ function Pie() {
 
 // Los datos vienen de la caché del catálogo, así que el menú forma parte
 // de la página estática y aparece al instante.
-async function Navegacion() {
+async function enlacesCategorias() {
   const { categorias } = opcionesDeFiltro(await obtenerCatalogo());
+  return [
+    { href: "/productos", nombre: "Todos los productos" },
+    ...categorias.map((c) => ({ href: `/productos?categoria=${c.slug}`, nombre: c.name })),
+  ];
+}
+
+/** Links del encabezado en la compu (en el celular van en MenuCelular). */
+async function Navegacion() {
+  const enlaces = (await enlacesCategorias()).slice(0, 7);
 
   return (
-    <nav className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
-      <Link href="/productos" className="text-neutral-600 hover:text-neutral-900">
-        Todos los productos
-      </Link>
-      {categorias.slice(0, 6).map((c) => (
-        <Link
-          key={c.slug}
-          href={`/productos?categoria=${c.slug}`}
-          className="text-neutral-600 hover:text-neutral-900"
-        >
-          {c.name}
+    <nav className="hidden gap-x-5 text-sm md:flex">
+      {enlaces.map((e) => (
+        <Link key={e.href} href={e.href} className="text-neutral-600 hover:text-neutral-900">
+          {e.nombre}
         </Link>
       ))}
     </nav>
+  );
+}
+
+async function MenuCelular() {
+  return (
+    <MenuMovil
+      enlaces={await enlacesCategorias()}
+      secundarios={[...legales, { href: "/arrepentimiento", nombre: "Botón de arrepentimiento" }]}
+    />
   );
 }

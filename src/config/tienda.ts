@@ -52,6 +52,10 @@ export const tienda = {
     plazo: completar("plazo estimado de entrega, por ejemplo 3 a 7 días hábiles"),
   },
 
+  // Guía de talles que se despliega en cada producto: cómo medir el pie y las
+  // equivalencias (AR / US / cm) de las marcas que vende el cliente.
+  guiaTalles: completar("guía de talles: cómo medir el pie y tabla de equivalencias"),
+
   // Política de cambios (página /cambios-y-devoluciones).
   cambios: {
     plazo: completar("plazo para cambios, por ejemplo 30 días corridos"),

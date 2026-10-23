@@ -6,9 +6,24 @@ import { obtenerCatalogo, obtenerProducto, type ProductoDetalle } from "@/lib/ca
 import { filtrarProductos } from "@/lib/filtros";
 import { formatearPrecio } from "@/lib/formato";
 import { urlSitio } from "@/lib/sitio";
+import { tienda } from "@/config/tienda";
+import { Dato } from "@/components/tienda/dato";
+import { IconoCambio, IconoCamion, IconoCandado, IconoLocal, IconoRegla } from "@/components/tienda/iconos";
 import { GrillaProductos } from "@/components/tienda/producto-card";
 import { Galeria } from "./galeria";
 import { SelectorTalle } from "./selector-talle";
+
+// Las páginas de los productos se generan al compilar: cargan al instante y los
+// datos para buscadores y redes (título, descripción, foto) van en el <head>.
+// Un producto nuevo se genera en su primera visita y queda guardado; el panel
+// las refresca al editar (etiqueta "catalogo"). Cache Components exige al menos
+// un valor: si todavía no hay productos, uno de reserva que da 404.
+export async function generateStaticParams() {
+  const productos = await obtenerCatalogo();
+  return productos.length > 0
+    ? productos.map((p) => ({ slug: p.slug }))
+    : [{ slug: "__sin-productos__" }];
+}
 
 export async function generateMetadata({
   params,
@@ -32,7 +47,8 @@ export async function generateMetadata({
 
 export default function ProductoPage({ params }: PageProps<"/productos/[slug]">) {
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8">
+    // Abajo deja lugar para la barra fija de "Agregar al carrito" del celular.
+    <main className="mx-auto w-full max-w-6xl px-4 pt-4 pb-28 md:py-8">
       {/* El slug viene de la URL: se resuelve dentro del Suspense para que
           el resto de la página (encabezado, pie) se muestre al instante. */}
       <Suspense fallback={<FichaCargando />}>
@@ -60,10 +76,10 @@ async function Ficha({ params }: Pick<PageProps<"/productos/[slug]">, "params">)
     <>
       <script
         type="application/ld+json"
-        // El JSON se escapa (< → <) para que un texto del producto no pueda cerrar el <script>.
+        // Se escapa el carácter "<" para que un texto del producto no pueda cerrar el <script>.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(datosEstructurados(producto)).replace(/</g, "\\u003c") }}
       />
-      <nav className="mb-6 text-sm text-neutral-500">
+      <nav className="mb-4 text-sm text-neutral-500 md:mb-6">
         <Link href="/productos" className="hover:text-neutral-900">
           Productos
         </Link>
@@ -92,12 +108,27 @@ async function Ficha({ params }: Pick<PageProps<"/productos/[slug]">, "params">)
               {producto.marca.name}
             </Link>
           )}
-          <h1 className="mt-1 text-3xl font-bold">{producto.name}</h1>
+          <h1 className="mt-1 text-2xl font-bold md:text-3xl">{producto.name}</h1>
           <p className="mt-3 text-2xl font-semibold">{formatearPrecio(producto.price)}</p>
 
           <div className="mt-8">
-            <SelectorTalle talles={producto.talles} />
+            <SelectorTalle talles={producto.talles} precio={producto.price} />
           </div>
+
+          <details className="group mt-6 border-y border-neutral-200">
+            <summary className="flex cursor-pointer list-none items-center gap-3 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+              <IconoRegla className="size-5 text-neutral-500" />
+              Guía de talles
+              <span className="ml-auto text-neutral-500 transition-transform group-open:rotate-45" aria-hidden>
+                +
+              </span>
+            </summary>
+            <p className="pb-4 text-sm text-neutral-700">
+              <Dato valor={tienda.guiaTalles} />
+            </p>
+          </details>
+
+          <Beneficios />
 
           {producto.description && (
             <div className="mt-10 border-t border-neutral-200 pt-6">
@@ -115,6 +146,33 @@ async function Ficha({ params }: Pick<PageProps<"/productos/[slug]">, "params">)
         </section>
       )}
     </>
+  );
+}
+
+/** Envío, cambios, pago y retiro, debajo del botón de compra. */
+function Beneficios() {
+  const items = [
+    { icono: IconoCamion, texto: "Envío a todo el país", detalle: "Costo según la zona, lo ves antes de pagar.", href: "/terminos" },
+    { icono: IconoCambio, texto: "Cambios de talle", detalle: "Mirá la política de cambios.", href: "/cambios-y-devoluciones" },
+    { icono: IconoCandado, texto: "Pago seguro con Mercado Pago", detalle: "Tarjetas, dinero en cuenta y más.", href: "/terminos" },
+    { icono: IconoLocal, texto: "Retiro sin costo en el local", detalle: tienda.retiro.direccion, href: "/terminos" },
+  ];
+  return (
+    <ul className="mt-6 space-y-4">
+      {items.map(({ icono: Icono, texto, detalle, href }) => (
+        <li key={texto}>
+          <Link href={href} className="group flex gap-3">
+            <Icono className="mt-0.5 size-5 shrink-0 text-neutral-500" />
+            <span className="text-sm">
+              <span className="block font-medium group-hover:underline">{texto}</span>
+              <span className="text-neutral-500">
+                <Dato valor={detalle} />
+              </span>
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -144,11 +202,20 @@ function datosEstructurados(producto: ProductoDetalle) {
 
 function FichaCargando() {
   return (
-    <div className="grid gap-8 md:grid-cols-2 md:gap-12" aria-hidden>
-      <div className="aspect-square animate-pulse rounded-lg bg-neutral-100" />
-      <div className="space-y-4">
-        <div className="h-8 w-3/4 animate-pulse rounded bg-neutral-100" />
-        <div className="h-6 w-1/4 animate-pulse rounded bg-neutral-100" />
+    // Misma forma que la ficha (foto, nombre, precio, talles y beneficios), para
+    // que el pie de página no salte cuando llega el contenido.
+    <div aria-hidden>
+      <div className="mb-4 h-5 w-40 animate-pulse rounded bg-neutral-100 md:mb-6" />
+      <div className="grid gap-8 md:grid-cols-2 md:gap-12">
+        <div className="-mx-4 aspect-square animate-pulse bg-neutral-100 md:mx-0 md:rounded-lg" />
+        <div className="space-y-4">
+          <div className="h-4 w-20 animate-pulse rounded bg-neutral-100" />
+          <div className="h-9 w-3/4 animate-pulse rounded bg-neutral-100" />
+          <div className="h-8 w-1/3 animate-pulse rounded bg-neutral-100" />
+          <div className="h-40 animate-pulse rounded bg-neutral-100" />
+          <div className="h-12 animate-pulse rounded bg-neutral-100" />
+          <div className="h-56 animate-pulse rounded bg-neutral-100" />
+        </div>
       </div>
     </div>
   );
