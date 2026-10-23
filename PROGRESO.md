@@ -11,7 +11,7 @@ comprobaciones: funciones SQL, carrito y checkout, pago, panel de pedidos, arrep
 navegador (tienda y panel). Viven en `scripts/pruebas/` (antes estaban en una carpeta temporal y se perdieron).
 Todas pasaron contra `mejoras-celular` antes de pasarla a `main`.
 
-**Rama `pulido-visual` (2026-10-23, en revisión con la vista previa de Vercel, sin pasar a `main`):**
+**Rama `pulido-visual` (pasada a `main` el 2026-10-23, revisada en la vista previa):**
 
 - Tarjetas: solo zoom leve al pasar el mouse (sin segunda foto); el catálogo vuelve a traer una foto por producto.
 - Fundido cruzado en el carrusel de portada y en la galería del producto (deslizar con el dedo, puntitos,
