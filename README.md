@@ -138,6 +138,34 @@ Páginas legales (texto base: conviene que las revise un abogado o el contador a
    compilar).
 4. Mercado Pago → Webhooks: cambiar la URL a `https://dominio/api/mercadopago/webhook`.
 
+## Pruebas automáticas
+
+```
+npm run build
+npm run pruebas                    # todas
+npm run pruebas -- carrito pago    # solo algunas
+```
+
+Levantan la tienda compilada en http://localhost:3124 (con los mails apagados) y prueban, contra la base de
+`.env.local`:
+
+| Prueba | Qué cubre |
+|---|---|
+| `sql` | `confirmar_pago`: descuenta stock, pago repetido, sin stock, dos pagos por la última unidad, permisos |
+| `carrito` | Carrito y checkout sin JavaScript: topes de stock, +/−, ajuste, validaciones, totales recalculados, envío y retiro |
+| `pago` | Cobro en Mercado Pago, página del pedido en cada estado, vuelta del comprador, firma del webhook |
+| `pedidos` | Panel de pedidos: login, filtros, búsqueda, cambios de estado, notas, cancelar, salir |
+| `arrepentimiento` | Botón de arrepentimiento y su manejo en el panel |
+| `tienda` | Secciones, marcas, buscador y sugerencias, 404, SEO, legales |
+| `navegador-tienda` | En Edge: celular, carrito, filtros, buscadores, arrepentimiento, transiciones, "reducir movimiento" |
+| `navegador-panel` | En Edge: portada (foto, textos, link), logo de marca, precio anterior |
+
+- Todo lo que crean (pedidos, un admin temporal, archivos) se borra al terminar, y el stock vuelve a como estaba. Los
+  pedidos reales no se tocan. Necesitan los datos de ejemplo cargados (`npm run ejemplo:cargar`).
+- Las de navegador usan Edge (o Chrome) sin pantalla; si no está instalado, se omiten.
+- Ojo: la base es la misma que la de la tienda publicada, así que mientras corren pueden verse pedidos de prueba en el
+  panel por unos segundos.
+
 ## Estructura
 
 ```
@@ -170,6 +198,7 @@ src/
   lib/sitio.ts         URL pública de la tienda (NEXT_PUBLIC_SITE_URL)
 supabase/migrations/   Esquema de la base de datos (SQL)
 scripts/               Datos de ejemplo (cargar / borrar)
+scripts/pruebas/       Pruebas automáticas (npm run pruebas)
 ```
 
 ## Modelo de datos

@@ -6,7 +6,12 @@
 
 Tienda online (prueba): https://zapateria-mu.vercel.app (Vercel, se publica sola con cada push a `main`).
 
-**Rama `mejoras-celular` (sin pasar a `main`, en revisión con la vista previa de Vercel):**
+**Pruebas automáticas** (2026-10-23): `npm run build` y `npm run pruebas` (detalle en el README). 8 pruebas, 180
+comprobaciones: funciones SQL, carrito y checkout, pago, panel de pedidos, arrepentimiento, tienda, y dos en el
+navegador (tienda y panel). Viven en `scripts/pruebas/` (antes estaban en una carpeta temporal y se perdieron).
+Todas pasaron contra `mejoras-celular` antes de pasarla a `main`.
+
+**Rama `mejoras-celular` (pasada a `main` el 2026-10-23):**
 
 - Diseño para celular y arreglos de Lighthouse: encabezado en una línea, filtros en panel, producto con fotos
   deslizables y barra fija, carrito y checkout con pasos.
@@ -26,7 +31,7 @@ Tienda online (prueba): https://zapateria-mu.vercel.app (Vercel, se publica sola
   Lighthouse con las animaciones activas: igual que antes (96–97 en celular, 100 en compu, CLS 0).
   Ojo al medir: el Edge sin pantalla de esta PC informa "reducir movimiento"; para medir con animaciones, agregar
   `--force-prefers-no-reduced-motion` a `--chrome-flags`.
-- **Al pasar a `main`:** cargar las fotos de portada reales (o editar/ocultar las de ejemplo) y los logos de las
+- **Ahora que está en `main`:** cargar las fotos de portada reales (o editar/ocultar las de ejemplo) y los logos de las
   marcas reales desde el panel. Logos solo de marcas que el cliente esté autorizado a usar.
 
 ## Pendientes / bugs conocidos
