@@ -52,7 +52,7 @@ export default async function Home() {
 
         {marcas.length > 0 && (
           <section className="mt-16">
-            <h2 className="mb-6 text-xl font-bold tracking-tight uppercase sm:text-2xl">Marcas</h2>
+            <h2 className="mb-6 text-center text-xl font-bold tracking-tight uppercase sm:text-2xl">Marcas</h2>
             <FranjaMarcas marcas={marcas} />
           </section>
         )}
