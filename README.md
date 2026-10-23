@@ -8,7 +8,7 @@ Next.js 16 + Supabase + Mercado Pago (Checkout Pro), deploy en Vercel.
 2. Copiar `.env.example` como `.env.local` y completar las claves de Supabase.
 3. Base de datos: en Supabase → **SQL Editor**, pegar y ejecutar, en orden y una sola vez, cada archivo de
    `supabase/migrations/` (`20261013000000_esquema_inicial.sql`, `20261022000000_pagos.sql`,
-   `20261023000000_cancelar_pedido.sql` y `20261024000000_arrepentimiento.sql`).
+   `20261023000000_cancelar_pedido.sql`, `20261024000000_arrepentimiento.sql` y `20261025000000_mails.sql`).
 4. Levantar el servidor: `npm run dev` y abrir http://localhost:3000
 5. Crear el usuario administrador (ver abajo) y entrar a http://localhost:3000/admin
 
@@ -59,6 +59,30 @@ Checkout Pro: el comprador paga en la página de Mercado Pago. Variables en `.en
   secreta que muestra en `MERCADOPAGO_WEBHOOK_SECRET`.
 - Para probar pagos: ingresar a Mercado Pago con una **cuenta de prueba compradora** (no la vendedora) y usar
   las tarjetas de prueba de la documentación (titular `APRO` = aprobado, `OTHE` = rechazado).
+
+## Mails automáticos
+
+Con [Resend](https://resend.com), en `src/lib/mails.ts`. Variables: `RESEND_API_KEY`, `MAIL_REMITENTE` y
+`MAIL_AVISOS` (ver `.env.example`). Sin `RESEND_API_KEY` la tienda funciona igual pero no manda mails.
+
+- **Pago confirmado:** confirmación al comprador (productos, total, entrega y link a su pedido) y aviso de pedido
+  nuevo al dueño (con los datos del cliente y link al panel; "Responder" le escribe al cliente). Si el pago quedó
+  sin stock, los dos mails lo dicen. Salen una sola vez aunque el pago se procese por varios caminos: la columna
+  `orders.paid_notified_at` marca que ya se avisó (migración `20261025000000_mails.sql`). Si Resend falla, se
+  reintenta la próxima vez que se procese el pago.
+- **Botón de arrepentimiento:** el código de solicitud al comprador y un aviso al dueño.
+
+**Sin dominio propio (pruebas):** `MAIL_REMITENTE="Zapatería <onboarding@resend.dev>"`. Así Resend **solo entrega
+a la dirección con la que se creó la cuenta de Resend**: para probar, comprar con ese email.
+
+**Con el dominio propio:**
+
+1. Resend → **Domains → Add Domain** con el dominio de la tienda (o un subdominio como `mail.dominio`).
+2. Cargar en el DNS del dominio los registros que muestra Resend (SPF y DKIM, y el DMARC recomendado) y esperar a
+   que figure **Verified**.
+3. En Vercel: `MAIL_REMITENTE="Nombre de la tienda <pedidos@dominio>"` y `MAIL_AVISOS` con el email del dueño.
+   Redeploy.
+4. Hacer una compra de prueba y revisar que los mails no lleguen a spam.
 
 ## Datos de la tienda y legales
 
@@ -113,6 +137,7 @@ src/
   lib/form.ts          Utilidades de formularios (panel y tienda)
   lib/mercadopago.ts   API de Mercado Pago (cobros, pagos, firma de webhooks)
   lib/pagos.ts         Iniciar el pago de un pedido y procesar pagos
+  lib/mails.ts         Mails automáticos (Resend): pago confirmado y arrepentimiento
   app/api/mercadopago/ Webhook y vuelta desde Mercado Pago
   lib/supabase/
     public.ts          Cliente con clave pública (RLS aplica) – catálogo

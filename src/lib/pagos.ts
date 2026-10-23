@@ -1,6 +1,8 @@
 import "server-only";
 import { revalidateTag } from "next/cache";
+import { after } from "next/server";
 import { esUuid } from "@/lib/carrito";
+import { avisarPagoConfirmado } from "@/lib/mails";
 import { buscarPagos, crearPreferencia, obtenerPago, type ItemCobro } from "@/lib/mercadopago";
 import { createServiceClient } from "@/lib/supabase/service";
 
@@ -133,6 +135,9 @@ export async function procesarPago(pagoId: string): Promise<string | null> {
     if (estado === "paid" || estado === "stock_issue") {
       // Cambió el stock: la tienda tiene que dejar de mostrar el anterior.
       revalidateTag("catalogo", { expire: 0 });
+      // Los mails salen después de responder, para no demorar al comprador
+      // que vuelve de Mercado Pago. Si ya se avisó, no hace nada.
+      after(() => avisarPagoConfirmado(pedido.id));
     }
     if (estado === "stock_issue") {
       await agregarNota(

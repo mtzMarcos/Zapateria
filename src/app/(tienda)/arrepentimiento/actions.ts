@@ -1,13 +1,15 @@
 "use server";
 
 import { randomInt } from "node:crypto";
+import { after } from "next/server";
 import { texto } from "@/lib/form";
+import { avisarArrepentimiento, mailsActivos } from "@/lib/mails";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export type EstadoArrepentimiento = {
   error?: string;
   // Solicitud registrada (nueva o hecha antes para el mismo pedido).
-  solicitud?: { codigo: string; numero: number; fecha: string; email: string };
+  solicitud?: { codigo: string; numero: number; fecha: string; email: string; porMail: boolean };
   valores?: { pedido: string; email: string; motivo: string };
 };
 
@@ -66,7 +68,13 @@ export async function solicitarArrepentimiento(
   }
 
   const registrada = (codigo: string, iso: string) => ({
-    solicitud: { codigo, numero: pedido.order_number, fecha: fecha(iso), email: pedido.customer_email },
+    solicitud: {
+      codigo,
+      numero: pedido.order_number,
+      fecha: fecha(iso),
+      email: pedido.customer_email,
+      porMail: mailsActivos(),
+    },
   });
   if (pedido.withdrawal_code && pedido.withdrawal_requested_at) {
     return registrada(pedido.withdrawal_code, pedido.withdrawal_requested_at);
@@ -88,7 +96,11 @@ export async function solicitarArrepentimiento(
     console.error("Botón de arrepentimiento:", errorUpdate);
     return { error: "No pudimos registrar la solicitud. Probá de nuevo en unos minutos.", valores };
   }
-  if (actualizado) return registrada(actualizado.withdrawal_code, actualizado.withdrawal_requested_at);
+  if (actualizado) {
+    // Código por mail al comprador y aviso al dueño, después de responder.
+    after(() => avisarArrepentimiento(pedido.id));
+    return registrada(actualizado.withdrawal_code, actualizado.withdrawal_requested_at);
+  }
 
   // Otro envío la registró mientras tanto: se devuelve esa.
   const { data: existente } = await supabase

@@ -35,8 +35,9 @@ Tienda online (prueba): https://zapateria-mu.vercel.app (Vercel, se publica sola
     - Para confirmar la causa: agregar al log la firma recibida (`v1`), que no es secreta, y calcularla en la PC con
       la clave del `.env.local`.
     - No desactivar el chequeo de firma.
-- [ ] **Mails automáticos** (confirmación de pedido al comprador, aviso de pedido nuevo al dueño): pendientes,
-  no entran en la Etapa 5. Mientras tanto la confirmación dice "te vamos a contactar".
+- [x] ~~Mails automáticos~~ Hechos el 2026-10-23 con Resend (ver "Mails automáticos" abajo). **Falta conectarlos
+  al dominio propio** (README → Mails automáticos): mientras tanto salen desde `onboarding@resend.dev` y Resend solo
+  entrega a la dirección de la cuenta (marquitosnicodiaz8@gmail.com), así que a otros compradores no les llegan.
 - [ ] **Antes de lanzar: `npm run ejemplo:borrar`** para sacar los datos de ejemplo (ver abajo).
 
 Repositorio: https://github.com/mtzMarcos/Zapateria (privado, rama `main`).
@@ -70,7 +71,7 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 - Stack: Next.js 16 + Supabase + Mercado Pago Checkout Pro + Vercel.
 - Envíos: costo fijo por zona + retiro en local. **Los precios de las zonas son de ejemplo** (CABA $6.000, GBA $8.500, Interior $12.000); definirlos con el cliente.
 - Compra como invitado (sin cuentas de clientes).
-- Emails transaccionales: postergados para más adelante (ver Pendientes).
+- Emails transaccionales: con Resend (ver "Mails automáticos").
 - El stock se descuenta solo cuando el webhook de Mercado Pago confirma el pago aprobado.
 - Modo claro y oscuro (según el sistema): en `src/app/globals.css` el modo oscuro invierte la escala de grises
   (`white`, `neutral-*`) y ajusta rojo/verde/ámbar. **Regla para código nuevo:** usar solo esos colores pensando
@@ -244,7 +245,7 @@ Los pagos se confirman igual con la vuelta del comprador.
   pedidos con arrepentimiento sin cancelar (aunque estén entregados), aviso en el detalle, y un pedido entregado con
   arrepentimiento ahora se puede cancelar reponiendo el stock. Migración
   `supabase/migrations/20261024000000_arrepentimiento.sql` (columnas `withdrawal_*` y nueva versión de
-  `cancelar_pedido`). Como todavía no hay mails, el código solo se muestra en pantalla.
+  `cancelar_pedido`). El código se muestra en pantalla y también se manda por mail (ver "Mails automáticos").
 - **Pie de página:** contacto, local, links legales, botón de arrepentimiento, link a Defensa del Consumidor
   (Res. SCI 274/2021), titular, CUIT y QR de Data fiscal.
 - Checkout: "Al confirmar aceptás los Términos y condiciones y la política de cambios".
@@ -278,6 +279,26 @@ la respuesta trae el resultado como datos de React, no como HTML ya armado. Con 
    Devolverlo desde Mercado Pago y cancelar el pedido en el panel reponiendo el stock.
 8. Google Search Console: dar de alta el dominio y enviar `https://dominio/sitemap.xml`.
 9. Logo y favicon del cliente (`src/app/favicon.ico`; imagen para compartir en `src/app/opengraph-image.tsx`).
+10. Mails con el dominio: verificarlo en Resend (DNS), `MAIL_REMITENTE` con `pedidos@dominio` y `MAIL_AVISOS` con el
+    email del cliente (ver README). Con el primer pago real, revisar que los dos mails lleguen y no caigan en spam.
+
+## Mails automáticos (2026-10-23)
+
+- Con Resend, por su API REST (`src/lib/mails.ts`). Variables `RESEND_API_KEY`, `MAIL_REMITENTE` y `MAIL_AVISOS`, cargadas
+  en `.env.local` y en Vercel. Sin `RESEND_API_KEY` no se manda nada y la tienda funciona igual.
+- **Pago confirmado** (pagado o pagado sin stock): confirmación al comprador con productos, total, entrega y link a su
+  pedido; aviso "Pedido nuevo #N" al dueño con los datos del cliente y link al panel ("Responder" le escribe al cliente).
+  Salen después de responder (`after`), para no demorar al comprador que vuelve de Mercado Pago.
+- **Una sola vez:** la columna `orders.paid_notified_at` (migración `20261025000000_mails.sql`, corrida el 2026-10-23) la
+  "toma" el primero que procesa el pago. Si Resend falla se libera y se reintenta con el próximo procesamiento del pago;
+  además Resend descarta reenvíos con la misma clave de idempotencia. Los pedidos pagados antes de la migración quedaron
+  marcados como avisados.
+- **Botón de arrepentimiento:** el código por mail al comprador (la norma pide mandárselo) y aviso al dueño. La pantalla
+  de confirmación dice "También te lo mandamos por email".
+- Probado: 12 comprobaciones con Resend simulado (tres procesamientos simultáneos → un solo juego de mails, contenido,
+  textos del cliente escapados, sin pagar no avisa, sin stock, retiro), falla de Resend → se reintenta, mails de
+  arrepentimiento, y **envío real** a marquitosnicodiaz8@gmail.com (pedido de prueba #1070, ya borrado). Capturas de
+  los dos mails. Siguen pasando las pruebas de carrito (29), pago (18), panel (27) y arrepentimiento (24 + navegador).
 
 ## Datos de ejemplo (2026-10-21)
 
@@ -294,7 +315,7 @@ cargar, borrar y cargar de nuevo. Jordan Air (el producto cargado a mano) no se 
    `NEXT_PUBLIC_SITE_URL` en Vercel y la URL del webhook en Mercado Pago. Al lanzar: credenciales de producción de
    la cuenta del cliente (Access Token y un webhook nuevo con su propia clave secreta), y verificar el webhook con el
    primer pago real (ver Pendientes).
-2. Mails automáticos: pendientes (ver Pendientes).
+2. ~~Mails automáticos~~ (hechos; se conectan al dominio propio en el lanzamiento).
 
 ## Pendiente con el cliente
 

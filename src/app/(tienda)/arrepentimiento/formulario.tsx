@@ -13,7 +13,7 @@ export function FormularioArrepentimiento() {
   );
 
   if (estado.solicitud) {
-    const { codigo, numero, fecha, email } = estado.solicitud;
+    const { codigo, numero, fecha, email, porMail } = estado.solicitud;
     return (
       <div role="status" className="rounded-lg border border-neutral-300 p-6">
         <p className="text-sm font-medium tracking-wide text-green-700 uppercase">Solicitud registrada</p>
@@ -22,7 +22,8 @@ export function FormularioArrepentimiento() {
         <p className="mt-4 text-sm text-neutral-600">Tu código de solicitud es</p>
         <p className="font-mono text-2xl font-bold">{codigo}</p>
         <p className="mt-4 text-neutral-600">
-          Guardalo (podés sacarle una captura). Te vamos a contactar a {email} para coordinar la devolución
+          {porMail ? `También te lo mandamos por email a ${email}.` : "Guardalo (podés sacarle una captura)."} Te
+          vamos a contactar a {email} para coordinar la devolución
           del producto y el reintegro del total pagado. No tiene costo para vos.
         </p>
       </div>
