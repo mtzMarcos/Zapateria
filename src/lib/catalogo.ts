@@ -2,6 +2,7 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { urlFoto } from "@/lib/supabase/env";
+import type { Publico } from "@/lib/secciones";
 import { compararTalles } from "@/lib/talles";
 
 // Todas las consultas de la tienda se cachean con la etiqueta "catalogo".
@@ -17,8 +18,14 @@ export type ProductoResumen = {
   slug: string;
   name: string;
   price: number;
+  /** Precio anterior (tachado) o null si no tiene descuento. */
+  precioAnterior: number | null;
   marca: Referencia | null;
   categoria: (Referencia & { position: number }) | null;
+  publico: Publico;
+  tendencia: boolean;
+  deportes: boolean;
+  outlet: boolean;
   portada: string | null;
   talles: Talle[];
   stockTotal: number;
@@ -34,6 +41,11 @@ type FilaProducto = {
   slug: string;
   name: string;
   price: number;
+  compare_at_price: number | null;
+  audience: Publico;
+  is_trending: boolean;
+  is_sports: boolean;
+  is_outlet: boolean;
   description?: string;
   brands: Referencia | null;
   categories: (Referencia & { position: number }) | null;
@@ -42,7 +54,7 @@ type FilaProducto = {
 };
 
 const columnas =
-  "id, slug, name, price, brands(name, slug), categories(name, slug, position), product_variants(id, size, stock), product_images(storage_path)";
+  "id, slug, name, price, compare_at_price, audience, is_trending, is_sports, is_outlet, brands(name, slug), categories(name, slug, position), product_variants(id, size, stock), product_images(storage_path)";
 
 function normalizar(fila: FilaProducto): ProductoResumen {
   const talles = fila.product_variants.toSorted((a, b) => compararTalles(a.size, b.size));
@@ -51,8 +63,13 @@ function normalizar(fila: FilaProducto): ProductoResumen {
     slug: fila.slug,
     name: fila.name,
     price: Number(fila.price),
+    precioAnterior: fila.compare_at_price === null ? null : Number(fila.compare_at_price),
     marca: fila.brands,
     categoria: fila.categories,
+    publico: fila.audience,
+    tendencia: fila.is_trending,
+    deportes: fila.is_sports,
+    outlet: fila.is_outlet,
     portada: fila.product_images[0] ? urlFoto(fila.product_images[0].storage_path) : null,
     talles,
     stockTotal: talles.reduce((total, t) => total + t.stock, 0),
@@ -104,4 +121,24 @@ export async function obtenerProducto(slug: string): Promise<ProductoDetalle | n
     description: fila.description ?? "",
     fotos: fila.product_images.map((f) => urlFoto(f.storage_path)),
   };
+}
+
+export type Marca = { name: string; slug: string; logo: string | null };
+
+/** Marcas que tienen al menos un producto visible, por nombre, con la URL de su logo. */
+export async function obtenerMarcas(): Promise<Marca[]> {
+  "use cache";
+  cacheTag("catalogo");
+  cacheLife("hours");
+
+  const [{ data, error }, productos] = await Promise.all([
+    createPublicClient().from("brands").select("name, slug, logo_path").order("name"),
+    obtenerCatalogo(),
+  ]);
+  if (error) throw new Error(`No se pudieron cargar las marcas: ${error.message}`);
+
+  const conProductos = new Set(productos.map((p) => p.marca?.slug));
+  return data
+    .filter((m) => conProductos.has(m.slug))
+    .map((m) => ({ name: m.name, slug: m.slug, logo: m.logo_path ? urlFoto(m.logo_path) : null }));
 }

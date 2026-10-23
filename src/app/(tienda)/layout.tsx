@@ -4,21 +4,27 @@ import { faltaCompletar, tienda } from "@/config/tienda";
 import { CarritoLink, CarritoLinkVacio } from "@/components/tienda/carrito-link";
 import { Dato } from "@/components/tienda/dato";
 import { MenuMovil } from "@/components/tienda/menu-movil";
+import { BuscadorCelular, BuscadorCompu } from "@/components/tienda/buscador";
+import { obtenerAnuncio } from "@/lib/portada";
+import { secciones } from "@/lib/secciones";
 import { obtenerCatalogo } from "@/lib/catalogo";
 import { opcionesDeFiltro } from "@/lib/filtros";
 
 export default function TiendaLayout({ children }: LayoutProps<"/">) {
   return (
     <>
-      {/* Fijo arriba al bajar. En el celular: menú, nombre y carrito en una línea. */}
+      <BarraAnuncio />
+      {/* Fijo arriba al bajar. En el celular: menú, nombre, lupa y carrito en una línea. */}
       <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white">
-        <div className="relative mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-4 md:h-16 md:gap-8">
+        <div className="relative mx-auto flex h-14 w-full max-w-7xl items-center gap-2 px-4 md:h-16 md:gap-6">
           <MenuCelular />
           <Link href="/" className="text-lg font-bold md:text-xl">
             {tienda.nombre}
           </Link>
           <Navegacion />
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1 md:ml-0 md:gap-4">
+            <BuscadorCompu />
+            <BuscadorCelular />
             <Suspense fallback={<CarritoLinkVacio />}>
               <CarritoLink />
             </Suspense>
@@ -45,7 +51,7 @@ function Pie() {
 
   return (
     <footer className="mt-16 border-t border-neutral-200">
-      <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 text-sm text-neutral-600 sm:grid-cols-3">
+      <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 text-sm text-neutral-600 sm:grid-cols-3">
         <div>
           <p className="font-medium text-neutral-900">{tienda.nombre}</p>
           <p className="mt-1">{tienda.descripcion}</p>
@@ -115,7 +121,7 @@ function Pie() {
       </div>
 
       <div className="border-t border-neutral-200">
-        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 text-xs text-neutral-500">
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 text-xs text-neutral-500">
           <p>
             <Dato valor={legal.titular} /> · CUIT <Dato valor={legal.cuit} />
           </p>
@@ -150,24 +156,15 @@ function Pie() {
   );
 }
 
-// Los datos vienen de la caché del catálogo, así que el menú forma parte
-// de la página estática y aparece al instante.
-async function enlacesCategorias() {
-  const { categorias } = opcionesDeFiltro(await obtenerCatalogo());
-  return [
-    { href: "/productos", nombre: "Todos los productos" },
-    ...categorias.map((c) => ({ href: `/productos?categoria=${c.slug}`, nombre: c.name })),
-  ];
-}
+// Secciones del menú principal: Mujer, Hombre, Niños, Tendencias, Deportes y Outlet.
+const enlacesSecciones = secciones.map((s) => ({ href: `/${s.slug}`, nombre: s.nombre }));
 
-/** Links del encabezado en la compu (en el celular van en MenuCelular). */
-async function Navegacion() {
-  const enlaces = (await enlacesCategorias()).slice(0, 7);
-
+/** Menú principal en la compu (en el celular va en el ☰). */
+function Navegacion() {
   return (
-    <nav className="hidden gap-x-5 text-sm md:flex">
-      {enlaces.map((e) => (
-        <Link key={e.href} href={e.href} className="text-neutral-600 hover:text-neutral-900">
+    <nav aria-label="Secciones" className="hidden flex-1 justify-center gap-x-6 text-sm font-medium lg:gap-x-8 md:flex">
+      {enlacesSecciones.map((e) => (
+        <Link key={e.href} href={e.href} className="py-2 hover:underline hover:underline-offset-8">
           {e.nombre}
         </Link>
       ))}
@@ -175,11 +172,36 @@ async function Navegacion() {
   );
 }
 
+// Las categorías vienen de la caché del catálogo: el menú forma parte de la
+// página estática y aparece al instante.
 async function MenuCelular() {
+  const { categorias } = opcionesDeFiltro(await obtenerCatalogo());
   return (
     <MenuMovil
-      enlaces={await enlacesCategorias()}
-      secundarios={[...legales, { href: "/arrepentimiento", nombre: "Botón de arrepentimiento" }]}
+      enlaces={[...enlacesSecciones, { href: "/productos", nombre: "Todos los productos" }]}
+      secundarios={[
+        ...categorias.map((c) => ({ href: `/productos?categoria=${c.slug}`, nombre: c.name })),
+        ...legales,
+        { href: "/arrepentimiento", nombre: "Botón de arrepentimiento" },
+      ]}
     />
+  );
+}
+
+/** Barra fina con el anuncio que se edita en el panel → Portada. */
+async function BarraAnuncio() {
+  const anuncio = await obtenerAnuncio();
+  if (!anuncio) return null;
+  const clases = "block px-4 py-2 text-center text-xs font-medium tracking-wide sm:text-sm";
+  return (
+    <div className="bg-neutral-900 text-white">
+      {anuncio.link ? (
+        <Link href={anuncio.link} className={`${clases} hover:underline`}>
+          {anuncio.texto}
+        </Link>
+      ) : (
+        <p className={clases}>{anuncio.texto}</p>
+      )}
+    </div>
   );
 }

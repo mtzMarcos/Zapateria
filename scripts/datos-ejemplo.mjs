@@ -31,6 +31,21 @@ const CATEGORIAS = [
   { name: "Ojotas", slug: "ojotas", position: 3 },
 ];
 
+// Público, secciones del menú (Tendencias, Deportes, Outlet) y precio anterior
+// (tachado) de cada producto de ejemplo, para que los menús no queden vacíos.
+const EXTRAS = {
+  "ejemplo-nike-air-max-90": { audience: "hombre", is_trending: true },
+  "ejemplo-nike-revolution-7": { audience: "mujer", is_sports: true, is_outlet: true, compare_at_price: 109999 },
+  "ejemplo-adidas-superstar": { audience: "unisex", is_trending: true },
+  "ejemplo-adidas-ultraboost-light": { audience: "unisex", is_sports: true },
+  "ejemplo-puma-suede-classic": { audience: "mujer", is_trending: true, is_outlet: true, compare_at_price: 139999 },
+  "ejemplo-topper-rock": { audience: "ninos" },
+  "ejemplo-topper-bota-trekking": { audience: "hombre", is_sports: true },
+  "ejemplo-puma-bota-urbana": { audience: "mujer" },
+  "ejemplo-adidas-adilette": { audience: "unisex", is_outlet: true, compare_at_price: 49999 },
+  "ejemplo-nike-victori-one": { audience: "ninos", is_sports: true },
+};
+
 // stock: un número por talle, del 36 al 44. colores: uno por foto.
 const PRODUCTOS = [
   {
@@ -267,6 +282,7 @@ async function cargar(supabase) {
           active: true,
           brand_id: marca.id,
           category_id: categoriaPorSlug.get(p.categoria),
+          ...EXTRAS[p.slug],
           // Fechas escalonadas para que el orden "más nuevos" sea siempre el mismo.
           created_at: new Date(ahora - i * 60_000).toISOString(),
         })

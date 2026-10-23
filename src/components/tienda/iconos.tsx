@@ -88,3 +88,28 @@ export const IconoCheck = (p: Props) => (
     <path d="M5 12l5 5L20 7" />
   </Icono>
 );
+
+export const IconoLupa = (p: Props) => (
+  <Icono {...p}>
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="M16 16l4.5 4.5" />
+  </Icono>
+);
+
+export const IconoFlecha = ({ direccion = "derecha", ...p }: Props & { direccion?: "izquierda" | "derecha" }) => (
+  <Icono {...p}>
+    <path d={direccion === "derecha" ? "M9 5l7 7-7 7" : "M15 5l-7 7 7 7"} />
+  </Icono>
+);
+
+export const IconoPausa = (p: Props) => (
+  <Icono {...p}>
+    <path d="M9 6v12M15 6v12" />
+  </Icono>
+);
+
+export const IconoPlay = (p: Props) => (
+  <Icono {...p}>
+    <path d="M8 5.5v13l10-6.5z" />
+  </Icono>
+);

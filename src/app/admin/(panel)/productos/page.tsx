@@ -4,11 +4,17 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { formatearPrecio } from "@/lib/formato";
 import { urlFoto } from "@/lib/supabase/env";
 import { clasesBoton } from "@/components/admin/estilos";
+import { publicos, type Publico } from "@/lib/secciones";
 
 type FilaProducto = {
   id: string;
   name: string;
   price: number;
+  compare_at_price: number | null;
+  audience: string;
+  is_trending: boolean;
+  is_sports: boolean;
+  is_outlet: boolean;
   active: boolean;
   brands: { name: string } | null;
   categories: { name: string } | null;
@@ -21,7 +27,7 @@ export default async function ProductosPage() {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, name, price, active, brands(name), categories(name), product_variants(stock), product_images(storage_path)",
+      "id, name, price, compare_at_price, audience, is_trending, is_sports, is_outlet, active, brands(name), categories(name), product_variants(stock), product_images(storage_path)",
     )
     .order("created_at", { ascending: false })
     .order("position", { referencedTable: "product_images" })
@@ -76,12 +82,22 @@ export default async function ProductosPage() {
                         </span>
                         <span>
                           <span className="block font-medium">{p.name}</span>
-                          <span className="text-neutral-500">{p.brands?.name ?? "Sin marca"}</span>
+                          <span className="text-neutral-500">
+                            {p.brands?.name ?? "Sin marca"} · {publicos[p.audience as Publico] ?? p.audience}
+                          </span>
+                          <Secciones producto={p} />
                         </span>
                       </Link>
                     </td>
                     <td className="p-3">{p.categories?.name ?? "—"}</td>
-                    <td className="p-3 text-right">{formatearPrecio(p.price)}</td>
+                    <td className="p-3 text-right">
+                      {formatearPrecio(p.price)}
+                      {p.compare_at_price !== null && (
+                        <span className="block text-xs text-neutral-500 line-through">
+                          {formatearPrecio(Number(p.compare_at_price))}
+                        </span>
+                      )}
+                    </td>
                     <td className={`p-3 text-right ${stock === 0 ? "text-red-700" : ""}`}>
                       {stock}
                     </td>
@@ -104,4 +120,23 @@ function Avisos({ activo, stock, conFotos }: { activo: boolean; stock: number; c
   const faltan = [!conFotos && "fotos", stock === 0 && "stock"].filter(Boolean);
   if (faltan.length > 0) return <span className="text-amber-700">Visible, sin {faltan.join(" ni ")}</span>;
   return <span className="text-green-700">Visible</span>;
+}
+
+/** Marcas de Tendencia, Deportes y Outlet del producto. */
+function Secciones({ producto }: { producto: FilaProducto }) {
+  const marcas = [
+    producto.is_trending && "Tendencia",
+    producto.is_sports && "Deportes",
+    producto.is_outlet && "Outlet",
+  ].filter((m): m is string => !!m);
+  if (marcas.length === 0) return null;
+  return (
+    <span className="mt-1 flex flex-wrap gap-1">
+      {marcas.map((m) => (
+        <span key={m} className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-neutral-700">
+          {m}
+        </span>
+      ))}
+    </span>
+  );
 }

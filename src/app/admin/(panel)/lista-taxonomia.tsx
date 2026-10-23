@@ -4,14 +4,17 @@ import { useActionState } from "react";
 import { estadoInicial } from "@/lib/form";
 import { BotonEnviar, Mensaje } from "@/components/admin/ui";
 import { claseInput } from "@/components/admin/estilos";
+import { CampoImagen } from "@/components/admin/campo-imagen";
 import {
   borrarTaxonomia,
   crearTaxonomia,
+  guardarLogoMarca,
   renombrarTaxonomia,
   type Taxonomia,
 } from "./taxonomias";
 
-type Item = { id: string; name: string; productos: number };
+// logo: solo en marcas (URL de la imagen o null si no tiene).
+type Item = { id: string; name: string; productos: number; logo?: string | null };
 
 export function ListaTaxonomia({
   tabla,
@@ -86,6 +89,19 @@ function Fila({ tabla, item }: { tabla: Taxonomia; item: Item }) {
       </div>
       <Mensaje estado={estadoRenombrar} />
       <Mensaje estado={estadoBorrar} />
+      {item.logo !== undefined && (
+        <div className="max-w-xs">
+          <CampoImagen
+            carpeta="marcas"
+            url={item.logo}
+            etiqueta="Logo"
+            ayuda="PNG con fondo transparente o blanco, idealmente 400×200. Sin logo, la tienda muestra el nombre."
+            claseVista="h-20 w-40"
+            ajuste="object-contain"
+            guardar={guardarLogoMarca.bind(null, item.id)}
+          />
+        </div>
+      )}
     </li>
   );
 }

@@ -5,6 +5,7 @@ import { cerrarSesion } from "../login/actions";
 const secciones = [
   { href: "/admin/pedidos", nombre: "Pedidos" },
   { href: "/admin/productos", nombre: "Productos" },
+  { href: "/admin/portada", nombre: "Portada" },
   { href: "/admin/marcas", nombre: "Marcas" },
   { href: "/admin/categorias", nombre: "Categorías" },
   { href: "/admin/envios", nombre: "Envíos" },

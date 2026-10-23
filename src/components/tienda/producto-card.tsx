@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ProductoResumen } from "@/lib/catalogo";
-import { formatearPrecio } from "@/lib/formato";
+import { descuento, formatearPrecio } from "@/lib/formato";
 
 /** Con este stock total o menos, la tarjeta dice "Últimas unidades". */
 const POCAS_UNIDADES = 2;
@@ -62,13 +62,26 @@ function ProductoCard({ producto, prioridad }: { producto: ProductoResumen; prio
             {agotado ? "Sin stock" : "Últimas unidades"}
           </span>
         )}
+        {producto.precioAnterior !== null && (
+          <span className="absolute top-2 right-2 rounded-full bg-red-700 px-2.5 py-0.5 text-xs font-semibold text-white">
+            -{descuento(producto.precioAnterior, producto.price)}%
+          </span>
+        )}
       </div>
       <div className="mt-3">
         {producto.marca && (
           <p className="text-xs tracking-wide text-neutral-500 uppercase">{producto.marca.name}</p>
         )}
         <h3 className="mt-0.5 text-sm leading-snug font-medium group-hover:underline">{producto.name}</h3>
-        <p className="mt-1 font-semibold">{formatearPrecio(producto.price)}</p>
+        <p className="mt-1 flex flex-wrap items-baseline gap-x-2">
+          <span className="font-semibold">{formatearPrecio(producto.price)}</span>
+          {producto.precioAnterior !== null && (
+            <span className="text-sm text-neutral-500 line-through">
+              <span className="sr-only">Antes </span>
+              {formatearPrecio(producto.precioAnterior)}
+            </span>
+          )}
+        </p>
       </div>
     </Link>
   );

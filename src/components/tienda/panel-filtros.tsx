@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { IconoCerrar, IconoFiltros } from "@/components/tienda/iconos";
+import { IconoCerrar, IconoFiltros } from "./iconos";
 
 /**
  * Filtros del catálogo en el celular: un botón que abre un panel desde abajo

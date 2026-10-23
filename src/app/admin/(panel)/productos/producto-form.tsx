@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { estadoInicial, type EstadoForm } from "@/lib/form";
 import { BotonEnviar, Mensaje } from "@/components/admin/ui";
 import { claseInput, claseLabel } from "@/components/admin/estilos";
+import { publicos } from "@/lib/secciones";
 
 type Opcion = { id: string; name: string };
 
@@ -13,6 +14,11 @@ export type DatosProducto = {
   brand_id: string | null;
   category_id: string | null;
   price: number;
+  compare_at_price: number | null;
+  audience: string;
+  is_trending: boolean;
+  is_sports: boolean;
+  is_outlet: boolean;
   active: boolean;
 };
 
@@ -99,6 +105,65 @@ export function ProductoForm({
             className={claseInput}
           />
         </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div>
+          <label htmlFor="precioAnterior" className={claseLabel}>
+            Precio anterior ($) <span className="font-normal text-neutral-500">(opcional)</span>
+          </label>
+          <input
+            id="precioAnterior"
+            name="precioAnterior"
+            type="number"
+            min={0}
+            step="0.01"
+            defaultValue={producto?.compare_at_price ?? ""}
+            aria-describedby="precioAnterior-ayuda"
+            className={claseInput}
+          />
+          <p id="precioAnterior-ayuda" className="mt-1 text-xs text-neutral-500">
+            Si lo cargás, se muestra tachado con el % de descuento. Tiene que ser mayor que el precio.
+          </p>
+        </div>
+        <div>
+          <label htmlFor="publico" className={claseLabel}>
+            Público
+          </label>
+          <select
+            id="publico"
+            name="publico"
+            defaultValue={producto?.audience ?? "unisex"}
+            aria-describedby="publico-ayuda"
+            className={claseInput}
+          >
+            {Object.entries(publicos).map(([valor, nombre]) => (
+              <option key={valor} value={valor}>
+                {nombre}
+              </option>
+            ))}
+          </select>
+          <p id="publico-ayuda" className="mt-1 text-xs text-neutral-500">
+            Unisex aparece en Mujer y en Hombre.
+          </p>
+        </div>
+        <fieldset>
+          <legend className={claseLabel}>Secciones del menú</legend>
+          <div className="space-y-1 text-sm">
+            <label className="flex items-center gap-2">
+              <input name="tendencia" type="checkbox" defaultChecked={producto?.is_trending} />
+              Tendencias
+            </label>
+            <label className="flex items-center gap-2">
+              <input name="deportes" type="checkbox" defaultChecked={producto?.is_sports} />
+              Deportes
+            </label>
+            <label className="flex items-center gap-2">
+              <input name="outlet" type="checkbox" defaultChecked={producto?.is_outlet} />
+              Outlet
+            </label>
+          </div>
+        </fieldset>
       </div>
 
       <div>

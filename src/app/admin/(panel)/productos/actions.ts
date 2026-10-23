@@ -5,8 +5,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/admin/auth";
 import { mensajeError, numero, texto, type EstadoForm } from "@/lib/form";
 import { catalogoActualizado } from "@/lib/admin/revalidar";
-import { createServiceClient } from "@/lib/supabase/service";
+import { borrarArchivos } from "@/lib/admin/archivos";
 import { slugify } from "@/lib/slug";
+import { esPublico } from "@/lib/secciones";
 
 // ---------------------------------------------------------------------
 // Datos del producto
@@ -15,8 +16,16 @@ import { slugify } from "@/lib/slug";
 function leerProducto(formData: FormData) {
   const nombre = texto(formData, "nombre");
   const precio = numero(formData, "precio");
+  const anterior = numero(formData, "precioAnterior");
+  const publico = texto(formData, "publico");
   if (!nombre) return { error: "Escribí el nombre del producto." } as const;
   if (precio === null || precio < 0) return { error: "El precio no es válido." } as const;
+  if (texto(formData, "precioAnterior") && (anterior === null || anterior <= precio)) {
+    return {
+      error: "El precio anterior tiene que ser mayor que el precio (o dejalo vacío si no hay descuento).",
+    } as const;
+  }
+  if (!esPublico(publico)) return { error: "Elegí el público del producto." } as const;
 
   return {
     producto: {
@@ -25,6 +34,11 @@ function leerProducto(formData: FormData) {
       brand_id: texto(formData, "marca") || null,
       category_id: texto(formData, "categoria") || null,
       price: precio,
+      compare_at_price: anterior,
+      audience: publico,
+      is_trending: formData.get("tendencia") === "on",
+      is_sports: formData.get("deportes") === "on",
+      is_outlet: formData.get("outlet") === "on",
       active: formData.get("activo") === "on",
     },
   };
@@ -287,15 +301,4 @@ export async function moverFoto(
 
   catalogoActualizado();
   return {};
-}
-
-/**
- * Borra archivos del bucket. Usa la clave secreta porque Storage exige
- * permiso de lectura además del de borrado; quien llama ya verificó que
- * el usuario es admin.
- */
-async function borrarArchivos(rutas: string[]) {
-  if (rutas.length === 0) return;
-  const { error } = await createServiceClient().storage.from("product-images").remove(rutas);
-  if (error) console.error("No se pudieron borrar fotos del bucket:", error.message);
 }

@@ -27,7 +27,7 @@ export default async function EditarProductoPage({ params }: PageProps<"/admin/p
     supabase
       .from("products")
       .select(
-        "id, name, description, brand_id, category_id, price, active, product_variants(id, size, stock), product_images(id, storage_path)",
+        "id, name, description, brand_id, category_id, price, compare_at_price, audience, is_trending, is_sports, is_outlet, active, product_variants(id, size, stock), product_images(id, storage_path)",
       )
       .eq("id", id)
       .order("position", { referencedTable: "product_images" })

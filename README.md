@@ -8,7 +8,8 @@ Next.js 16 + Supabase + Mercado Pago (Checkout Pro), deploy en Vercel.
 2. Copiar `.env.example` como `.env.local` y completar las claves de Supabase.
 3. Base de datos: en Supabase → **SQL Editor**, pegar y ejecutar, en orden y una sola vez, cada archivo de
    `supabase/migrations/` (`20261013000000_esquema_inicial.sql`, `20261022000000_pagos.sql`,
-   `20261023000000_cancelar_pedido.sql`, `20261024000000_arrepentimiento.sql` y `20261025000000_mails.sql`).
+   `20261023000000_cancelar_pedido.sql`, `20261024000000_arrepentimiento.sql`, `20261025000000_mails.sql` y
+   `20261026000000_portada_y_secciones.sql`).
 4. Levantar el servidor: `npm run dev` y abrir http://localhost:3000
 5. Crear el usuario administrador (ver abajo) y entrar a http://localhost:3000/admin
 
@@ -84,6 +85,24 @@ a la dirección con la que se creó la cuenta de Resend**: para probar, comprar 
    Redeploy.
 4. Hacer una compra de prueba y revisar que los mails no lleguen a spam.
 
+## Inicio, menú, buscador y marcas
+
+- **Anuncio** (barra fina de arriba) y **portadas** (carrusel del inicio): panel → **Portada**. Cada portada tiene
+  foto de compu (1920×800), foto de celular opcional (900×1200), título, subtítulo, texto del botón y adónde lleva
+  (sección, marca, categoría, producto u otra dirección de la tienda o https). Se pueden ocultar, reordenar y borrar.
+  Sin foto, la tienda muestra un fondo neutro marcado "[Completar: foto de portada]". Pasa sola cada 6 segundos
+  (no, si el sistema pide "reducir movimiento"), con botón de pausa, puntitos, flechas y deslizable en el celular.
+- **Menú:** Mujer, Hombre, Niños, Tendencias, Deportes y Outlet (`src/lib/secciones.ts`), con páginas propias
+  (`/mujer`, `/outlet`…) con los filtros. En cada producto del panel: **Público** (los unisex aparecen en Mujer y
+  Hombre), tildes de Tendencias, Deportes y Outlet, y **precio anterior** opcional (se ve tachado con el % de descuento).
+- **Buscador:** en el encabezado (en el celular, la lupa abre un buscador a pantalla completa). Busca por nombre,
+  marca, categoría y público, sin importar tildes ni mayúsculas, con sugerencias mientras se escribe
+  (`/api/buscar`). Enter muestra todos los resultados en `/productos?q=…`, con los filtros.
+- **Marcas:** franja deslizable en el inicio y página por marca (`/marcas/nike`). El logo se carga en panel →
+  Marcas (PNG/JPG/WEBP, idealmente 400×200 con fondo blanco o transparente); sin logo se muestra el nombre.
+- Las fotos de portada y los logos van al mismo bucket que las fotos de productos (carpetas `portada/` y
+  `marcas/`); al cambiarlos o borrarlos se borra el archivo anterior.
+
 ## Datos de la tienda y legales
 
 Los datos del negocio están en `src/config/tienda.ts`: dirección y horarios del local, contacto, titular, CUIT,
@@ -138,6 +157,8 @@ src/
   lib/mercadopago.ts   API de Mercado Pago (cobros, pagos, firma de webhooks)
   lib/pagos.ts         Iniciar el pago de un pedido y procesar pagos
   lib/mails.ts         Mails automáticos (Resend): pago confirmado y arrepentimiento
+  lib/secciones.ts     Públicos y secciones del menú (Mujer, Hombre, Niños, Tendencias, Deportes, Outlet)
+  lib/portada.ts       Portadas del carrusel y anuncio (cacheados con la etiqueta "catalogo")
   app/api/mercadopago/ Webhook y vuelta desde Mercado Pago
   lib/supabase/
     public.ts          Cliente con clave pública (RLS aplica) – catálogo

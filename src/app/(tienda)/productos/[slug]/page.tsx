@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { obtenerCatalogo, obtenerProducto, type ProductoDetalle } from "@/lib/catalogo";
 import { filtrarProductos } from "@/lib/filtros";
-import { formatearPrecio } from "@/lib/formato";
+import { descuento, formatearPrecio } from "@/lib/formato";
 import { urlSitio } from "@/lib/sitio";
 import { tienda } from "@/config/tienda";
 import { Dato } from "@/components/tienda/dato";
@@ -48,7 +48,7 @@ export async function generateMetadata({
 export default function ProductoPage({ params }: PageProps<"/productos/[slug]">) {
   return (
     // Abajo deja lugar para la barra fija de "Agregar al carrito" del celular.
-    <main className="mx-auto w-full max-w-6xl px-4 pt-4 pb-28 md:py-8">
+    <main className="mx-auto w-full max-w-7xl px-4 pt-4 pb-28 md:py-8">
       {/* El slug viene de la URL: se resuelve dentro del Suspense para que
           el resto de la página (encabezado, pie) se muestre al instante. */}
       <Suspense fallback={<FichaCargando />}>
@@ -109,7 +109,20 @@ async function Ficha({ params }: Pick<PageProps<"/productos/[slug]">, "params">)
             </Link>
           )}
           <h1 className="mt-1 text-2xl font-bold md:text-3xl">{producto.name}</h1>
-          <p className="mt-3 text-2xl font-semibold">{formatearPrecio(producto.price)}</p>
+          <p className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-2xl font-semibold">{formatearPrecio(producto.price)}</span>
+            {producto.precioAnterior !== null && (
+              <>
+                <span className="text-lg text-neutral-500 line-through">
+                  <span className="sr-only">Antes </span>
+                  {formatearPrecio(producto.precioAnterior)}
+                </span>
+                <span className="rounded-full bg-red-700 px-2.5 py-0.5 text-sm font-semibold text-white">
+                  -{descuento(producto.precioAnterior, producto.price)}%
+                </span>
+              </>
+            )}
+          </p>
 
           <div className="mt-8">
             <SelectorTalle talles={producto.talles} precio={producto.price} />

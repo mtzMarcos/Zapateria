@@ -6,6 +6,21 @@
 
 Tienda online (prueba): https://zapateria-mu.vercel.app (Vercel, se publica sola con cada push a `main`).
 
+**Rama `mejoras-celular` (sin pasar a `main`, en revisión con la vista previa de Vercel):**
+
+- Diseño para celular y arreglos de Lighthouse: encabezado en una línea, filtros en panel, producto con fotos
+  deslizables y barra fija, carrito y checkout con pasos.
+- Inicio estilo tienda grande: anuncio, menú Mujer/Hombre/Niños/Tendencias/Deportes/Outlet, buscador con
+  sugerencias, carrusel de portadas editable desde el panel, franja de marcas con logos y páginas por marca.
+  Migración `20261026000000_portada_y_secciones.sql` **ya corrida en Supabase** (2026-10-23): la base es la misma
+  para `main` y la rama, y el código de `main` no usa las columnas nuevas, así que no le afecta.
+- Probado: panel en el navegador (12 comprobaciones: subir foto de portada y logo, textos y link, link a otro sitio
+  rechazado, el formulario no pierde lo escrito ante un error, precio anterior), secciones, marcas, búsqueda y
+  sugerencias, ancho de todas las páginas en el celular, capturas en celular y compu. Lighthouse: inicio 96/100/100/100
+  en celular y 100 en compu; Outlet, marca y búsqueda 98 en celular.
+- **Al pasar a `main`:** cargar las fotos de portada reales (o editar/ocultar las de ejemplo) y los logos de las
+  marcas reales desde el panel. Logos solo de marcas que el cliente esté autorizado a usar.
+
 ## Pendientes / bugs conocidos
 
 - [x] ~~Al crear un producto no deja elegir marca ni categoría.~~ Resuelto el 2026-10-21: no era un bug,

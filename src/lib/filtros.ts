@@ -10,6 +10,8 @@ export const ordenes = {
 export type Orden = keyof typeof ordenes;
 
 export type Filtros = {
+  /** Texto buscado (nombre, marca o categoría). */
+  q?: string;
   categoria?: string;
   marca?: string;
   talle?: string;
@@ -27,6 +29,7 @@ function primero(valor: string | string[] | undefined) {
 export function leerFiltros(searchParams: SearchParams): Filtros {
   const orden = primero(searchParams.orden);
   return {
+    q: primero(searchParams.q)?.slice(0, 80),
     categoria: primero(searchParams.categoria),
     marca: primero(searchParams.marca),
     talle: primero(searchParams.talle),
@@ -34,22 +37,51 @@ export function leerFiltros(searchParams: SearchParams): Filtros {
   };
 }
 
-/** Arma la URL del catálogo cambiando algunos filtros y manteniendo el resto. */
-export function urlCatalogo(filtros: Filtros, cambios: Partial<Filtros>) {
+/**
+ * Arma la URL del catálogo cambiando algunos filtros y manteniendo el resto.
+ * `ruta`: la página del listado (/productos, /mujer, /marcas/nike…).
+ */
+export function urlCatalogo(filtros: Filtros, cambios: Partial<Filtros>, ruta = "/productos") {
   const nuevos = { ...filtros, ...cambios };
   const params = new URLSearchParams();
+  if (nuevos.q) params.set("q", nuevos.q);
   if (nuevos.categoria) params.set("categoria", nuevos.categoria);
   if (nuevos.marca) params.set("marca", nuevos.marca);
   if (nuevos.talle) params.set("talle", nuevos.talle);
   if (nuevos.orden !== "recientes") params.set("orden", nuevos.orden);
   const query = params.toString();
-  return query ? `/productos?${query}` : "/productos";
+  return query ? `${ruta}?${query}` : ruta;
+}
+
+/** Minúsculas y sin tildes, para comparar "Niños" con "ninos". */
+export function normalizarTexto(texto: string) {
+  return texto.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
+}
+
+// Palabras del público que se pueden buscar ("zapatillas mujer"). Unisex vale para los dos.
+const palabrasPublico: Record<string, string> = {
+  mujer: "mujer",
+  hombre: "hombre",
+  ninos: "niños chicos",
+  unisex: "unisex mujer hombre",
+};
+
+/** true si todas las palabras buscadas aparecen en el nombre, la marca, la categoría o el público. */
+export function coincideBusqueda(producto: ProductoResumen, busqueda: string) {
+  const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
+  const texto = normalizarTexto(
+    [producto.name, producto.marca?.name, producto.categoria?.name, palabrasPublico[producto.publico]]
+      .filter(Boolean)
+      .join(" "),
+  );
+  return palabras.every((palabra) => texto.includes(palabra));
 }
 
 /** Aplica los filtros y el orden. Los productos sin stock van siempre al final. */
 export function filtrarProductos(productos: ProductoResumen[], filtros: Filtros) {
   const resultado = productos.filter(
     (p) =>
+      (!filtros.q || coincideBusqueda(p, filtros.q)) &&
       (!filtros.categoria || p.categoria?.slug === filtros.categoria) &&
       (!filtros.marca || p.marca?.slug === filtros.marca) &&
       (!filtros.talle || p.talles.some((t) => t.size === filtros.talle && t.stock > 0)),

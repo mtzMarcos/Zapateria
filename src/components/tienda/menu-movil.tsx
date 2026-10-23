@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { IconoCerrar, IconoMenu } from "./iconos";
 
 type Enlace = { href: string; nombre: string };
@@ -12,6 +12,9 @@ type Enlace = { href: string; nombre: string };
  */
 export function MenuMovil({ enlaces, secundarios }: { enlaces: Enlace[]; secundarios: Enlace[] }) {
   const [abierto, setAbierto] = useState(false);
+  // Dónde termina el encabezado (cambia si se ve la barra del anuncio arriba).
+  const [abajo, setAbajo] = useState(56);
+  const boton = useRef<HTMLButtonElement>(null);
   const id = useId();
 
   useEffect(() => {
@@ -27,7 +30,11 @@ export function MenuMovil({ enlaces, secundarios }: { enlaces: Enlace[]; secunda
     <div className="md:hidden">
       <button
         type="button"
-        onClick={() => setAbierto(!abierto)}
+        ref={boton}
+        onClick={() => {
+          setAbajo(boton.current?.closest("header")?.getBoundingClientRect().bottom ?? 56);
+          setAbierto(!abierto);
+        }}
         aria-expanded={abierto}
         aria-controls={id}
         aria-label={abierto ? "Cerrar menú" : "Abrir menú"}
@@ -39,11 +46,12 @@ export function MenuMovil({ enlaces, secundarios }: { enlaces: Enlace[]; secunda
       {abierto && (
         <>
           {/* Fondo oscuro: tocarlo cierra el menú. */}
-          <div className="fixed inset-0 top-14 z-30 bg-neutral-900/40" onClick={cerrar} aria-hidden />
+          <div className="fixed inset-x-0 bottom-0 z-30 bg-neutral-900/40" style={{ top: abajo }} onClick={cerrar} aria-hidden />
           <nav
             id={id}
             aria-label="Menú"
-            className="absolute inset-x-0 top-full z-40 max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b border-neutral-200 bg-white shadow-lg"
+            style={{ maxHeight: `calc(100dvh - ${abajo}px)` }}
+            className="absolute inset-x-0 top-full z-40 overflow-y-auto border-b border-neutral-200 bg-white shadow-lg"
           >
             <ul className="px-4 py-2">
               {enlaces.map((e) => (
