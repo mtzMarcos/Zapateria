@@ -2,8 +2,9 @@
 
 import { getImageProps } from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Portada } from "@/lib/portada";
+import { useCargarDespues } from "./cargar-despues";
 import { IconoFlecha, IconoPausa, IconoPlay } from "./iconos";
 
 const INTERVALO = 6000; // ms entre portadas
@@ -12,14 +13,18 @@ const INTERVALO = 6000; // ms entre portadas
 // en vez de la paleta, que en modo oscuro se invierte.
 
 /**
- * Carrusel del inicio: fotos a todo el ancho con título, subtítulo y botón.
+ * Carrusel del inicio: fotos a todo el ancho con título, subtítulo y botón,
+ * una encima de otra: al pasar de una a otra se funden (fundido cruzado).
  * Pasa solo cada 6 segundos (salvo que la persona pida "reducir movimiento"),
  * se pausa al pasar el mouse, al enfocar con el teclado o con el botón de
- * pausa, y en el celular se desliza con el dedo.
+ * pausa. En el celular se cambia deslizando el dedo; con el teclado, con las
+ * flechas.
  */
 export function CarruselPortada({ portadas }: { portadas: Portada[] }) {
-  const pista = useRef<HTMLDivElement>(null);
+  const toque = useRef<number | null>(null);
   const [actual, setActual] = useState(0);
+  // La primera foto se pide enseguida; las demás, cuando la página terminó de cargar.
+  const todas = useCargarDespues();
   const [pausado, setPausado] = useState(false); // pausa elegida con el botón
   const [enUso, setEnUso] = useState(false); // mouse encima, foco o dedo
   const [movimiento, setMovimiento] = useState(true);
@@ -33,20 +38,15 @@ export function CarruselPortada({ portadas }: { portadas: Portada[] }) {
     return () => consulta.removeEventListener("change", actualizar);
   }, []);
 
-  const irA = useCallback((i: number) => {
-    const el = pista.current;
-    if (!el) return;
-    el.scrollTo({ left: i * el.clientWidth, behavior: "smooth" });
-  }, []);
+  const irA = (i: number) => setActual((i + portadas.length) % portadas.length);
 
   useEffect(() => {
     if (!varias || pausado || enUso || !movimiento) return;
     const temporizador = setInterval(() => {
-      if (document.hidden) return;
-      irA((actual + 1) % portadas.length);
+      if (!document.hidden) setActual((a) => (a + 1) % portadas.length);
     }, INTERVALO);
     return () => clearInterval(temporizador);
-  }, [varias, pausado, enUso, movimiento, actual, portadas.length, irA]);
+  }, [varias, pausado, enUso, movimiento, portadas.length]);
 
   return (
     <section
@@ -57,17 +57,24 @@ export function CarruselPortada({ portadas }: { portadas: Portada[] }) {
       onMouseLeave={() => setEnUso(false)}
       onFocus={() => setEnUso(true)}
       onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setEnUso(false)}
-      onTouchStart={() => setEnUso(true)}
-      onTouchEnd={() => setTimeout(() => setEnUso(false), INTERVALO)}
+      onKeyDown={(e) => {
+        if (e.key === "ArrowRight") irA(actual + 1);
+        if (e.key === "ArrowLeft") irA(actual - 1);
+      }}
+      onTouchStart={(e) => {
+        setEnUso(true);
+        toque.current = e.touches[0].clientX;
+      }}
+      onTouchEnd={(e) => {
+        setTimeout(() => setEnUso(false), INTERVALO);
+        if (toque.current === null || !varias) return;
+        const dx = e.changedTouches[0].clientX - toque.current;
+        toque.current = null;
+        if (Math.abs(dx) > 40) irA(actual + (dx < 0 ? 1 : -1));
+      }}
     >
-      <div
-        ref={pista}
-        onScroll={(e) => {
-          const el = e.currentTarget;
-          setActual(Math.round(el.scrollLeft / el.clientWidth));
-        }}
-        className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
+      {/* Todas las portadas en la misma celda de la grilla: se ven una encima de otra. */}
+      <div className="grid">
         {portadas.map((p, i) => (
           <Diapositiva
             key={p.id}
@@ -76,6 +83,7 @@ export function CarruselPortada({ portadas }: { portadas: Portada[] }) {
             total={portadas.length}
             prioridad={i === 0}
             activa={i === actual}
+            conFoto={i === 0 || todas}
           />
         ))}
       </div>
@@ -84,22 +92,22 @@ export function CarruselPortada({ portadas }: { portadas: Portada[] }) {
         <>
           <button
             type="button"
-            onClick={() => irA((actual - 1 + portadas.length) % portadas.length)}
+            onClick={() => irA(actual - 1)}
             aria-label="Portada anterior"
-            className="absolute top-1/2 left-4 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-[#fff]/85 text-[#111] shadow hover:bg-[#fff] md:flex"
+            className="absolute top-1/2 left-4 z-10 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-[#fff]/85 text-[#111] shadow hover:bg-[#fff] md:flex"
           >
             <IconoFlecha direccion="izquierda" />
           </button>
           <button
             type="button"
-            onClick={() => irA((actual + 1) % portadas.length)}
+            onClick={() => irA(actual + 1)}
             aria-label="Portada siguiente"
-            className="absolute top-1/2 right-4 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-[#fff]/85 text-[#111] shadow hover:bg-[#fff] md:flex"
+            className="absolute top-1/2 right-4 z-10 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-[#fff]/85 text-[#111] shadow hover:bg-[#fff] md:flex"
           >
             <IconoFlecha />
           </button>
 
-          <div className="absolute inset-x-0 bottom-4 flex items-center justify-center gap-3">
+          <div className="absolute inset-x-0 bottom-4 z-10 flex items-center justify-center gap-3">
             <div className="flex gap-2">
               {portadas.map((p, i) => (
                 <button
@@ -111,7 +119,7 @@ export function CarruselPortada({ portadas }: { portadas: Portada[] }) {
                   className="flex size-6 items-center justify-center"
                 >
                   <span
-                    className={`block h-1.5 rounded-full transition-all ${
+                    className={`block h-1.5 rounded-full transition-all duration-300 ${
                       i === actual ? "w-6 bg-[#fff]" : "w-1.5 bg-[#fff]/60"
                     }`}
                   />
@@ -141,23 +149,30 @@ function Diapositiva({
   total,
   prioridad,
   activa,
+  conFoto,
 }: {
   portada: Portada;
   numero: number;
   total: number;
   prioridad: boolean;
   activa: boolean;
+  conFoto: boolean;
 }) {
   return (
     <div
       role="group"
       aria-roledescription="diapositiva"
       aria-label={`${numero} de ${total}`}
-      className="relative aspect-[4/5] w-full shrink-0 snap-center overflow-hidden bg-[#3f3f46] sm:aspect-[16/9] md:aspect-[12/5] md:max-h-[640px]"
+      aria-hidden={!activa}
+      // inert: las portadas que no se ven no reciben foco ni clics.
+      inert={!activa}
+      className={`relative col-start-1 row-start-1 aspect-[4/5] w-full overflow-hidden bg-[#3f3f46] transition-opacity duration-700 ease-in-out sm:aspect-[16/9] md:aspect-[12/5] md:max-h-[640px] ${
+        activa ? "z-[1] opacity-100" : "opacity-0"
+      }`}
     >
-      {portada.foto ? (
+      {portada.foto && conFoto ? (
         <Foto portada={portada} prioridad={prioridad} />
-      ) : (
+      ) : portada.foto ? null : (
         // Sin foto todavía: fondo neutro y aviso para completarla en el panel.
         <span className="absolute top-4 right-4 rounded border border-dashed border-[#fca5a5] bg-[#7f1d1d]/80 px-2 py-1 text-xs text-[#fff]">
           [Completar: foto de portada]

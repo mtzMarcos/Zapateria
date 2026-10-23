@@ -19,7 +19,19 @@ try {
     check(ancho === 390, `celular ${ruta}: no se desborda de costado (${ancho}px)`);
   }
 
+  // Pie: secciones plegables y el botón de arrepentimiento siempre a la vista.
+  await nav.ir("/");
+  check(
+    await nav.evaluar(`(() => { const f = document.querySelector("footer"); const a = f.querySelector('a[href="/arrepentimiento"]'); return f.querySelectorAll("details").length === 3 && a.checkVisibility() && !a.closest("details"); })()`),
+    "pie en el celular: 3 secciones plegables y el botón de arrepentimiento a la vista",
+  );
+
   await nav.ir("/productos/ejemplo-nike-air-max-90");
+  // Galería: fundido cruzado al cambiar de foto (deslizar o puntitos).
+  const diapositivas = `[...document.querySelector('[aria-roledescription="galería"]').querySelectorAll(":scope > div.col-start-1")]`;
+  check(await nav.evaluar(`getComputedStyle(${diapositivas}[1]).transitionDuration === "0.5s"`), "galería: las fotos cambian con un fundido (500 ms)");
+  await nav.evaluar(`document.querySelector('[aria-label="Ver foto 2"]').click()`);
+  check(await nav.hasta(`${diapositivas}[1].getAttribute("aria-hidden") === "false" && ${diapositivas}[0].getAttribute("aria-hidden") === "true"`, 3000), "galería: los puntitos cambian de foto");
   const boton = `[...document.querySelectorAll("form button")].find((b) => /talle|carrito|Agregando/i.test(b.textContent) && !b.getAttribute("aria-label"))`;
   await nav.evaluar(`${boton}.click()`);
   check(await nav.hasta(`document.querySelector("legend").textContent.includes("Elegí un talle para continuar")`, 3000), "producto sin talle elegido: el botón pide elegir uno");
@@ -69,7 +81,18 @@ try {
   await nav.escribir("form[role=search] input", "adi");
   check(await nav.hasta(`document.querySelectorAll("form[role=search] li a").length > 0`, 5000), "buscador de la compu: sugerencias debajo del campo");
   const card = `document.querySelector('a[href="/productos/ejemplo-nike-air-max-90"]')`;
-  check(await nav.evaluar(`${card}.querySelectorAll("img").length === 2`), "tarjeta con segunda foto para pasar el mouse");
+  check(await nav.evaluar(`${card}.querySelectorAll("img").length === 1`), "tarjeta: una sola foto (sin cambio al pasar el mouse)");
+  // Las fotos que se ven al abrir llegan visibles en el HTML; las de más abajo se funden al cargar.
+  await nav.evaluar("window.scrollTo(0, document.body.scrollHeight)");
+  check(await nav.hasta(`document.querySelectorAll("img.foto-suave[data-cargada]").length > 0`, 8000), "las fotos de más abajo aparecen con un fundido al cargar");
+  await nav.evaluar("window.scrollTo(0, 0)");
+  // Carrusel de la portada: fundido cruzado.
+  const portadas = `[...document.querySelectorAll('[aria-roledescription="diapositiva"]')]`;
+  if (await nav.evaluar(`${portadas}.length > 1`)) {
+    await nav.evaluar(`document.querySelector('[aria-label="Portada siguiente"]').click()`);
+    check(await nav.hasta(`${portadas}[1].getAttribute("aria-hidden") === "false"`, 3000), "carrusel: la flecha pasa a la portada siguiente");
+    check(await nav.evaluar(`getComputedStyle(${portadas}[1]).transitionDuration === "0.7s" && ${portadas}[0].inert`), "carrusel: fundido cruzado (700 ms) y la portada oculta no recibe clics");
+  }
   await nav.evaluar(`${card}.click()`);
   check(await nav.hasta(`location.pathname === "/productos/ejemplo-nike-air-max-90" && window.__transiciones.length > 0`), "navegar de la tarjeta al producto inicia una transición");
   const anims = (await nav.evaluar("window.__transiciones[0]")) ?? [];
@@ -80,8 +103,10 @@ try {
   // --- "Reducir movimiento": sin animaciones
   nav = await abrirNavegador({ ancho: 1280, reducir: true });
   await nav.ir("/productos");
-  check(await nav.evaluar(`getComputedStyle(document.querySelector("li.aparecer")).animationName === "none"`), "reducir movimiento: sin aparición al hacer scroll");
-  check(await nav.evaluar(`parseFloat(getComputedStyle(document.querySelector("li.aparecer img")).transitionDuration) < 0.01`), "reducir movimiento: sin zoom animado");
+  check(await nav.evaluar(`getComputedStyle(document.querySelector("li.subir")).animationName === "none"`), "reducir movimiento: sin aparición al hacer scroll");
+  check(await nav.evaluar(`parseFloat(getComputedStyle(document.querySelector("li.subir img")).transitionDuration) < 0.01`), "reducir movimiento: sin zoom ni fundido de fotos");
+  await nav.ir("/productos/ejemplo-nike-air-max-90");
+  check(await nav.evaluar(`parseFloat(getComputedStyle(document.querySelector('[aria-roledescription="galería"] > div.col-start-1')).transitionDuration) < 0.01`), "reducir movimiento: la galería cambia sin fundido");
   nav.cerrar();
   nav = null;
 } finally {

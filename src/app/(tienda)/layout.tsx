@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { faltaCompletar, tienda } from "@/config/tienda";
 import { CarritoLink, CarritoLinkVacio } from "@/components/tienda/carrito-link";
 import { Dato } from "@/components/tienda/dato";
+import { IconoChevron } from "@/components/tienda/iconos";
 import { MenuMovil } from "@/components/tienda/menu-movil";
 import { BuscadorCelular, BuscadorCompu } from "@/components/tienda/buscador";
 import { obtenerAnuncio } from "@/lib/portada";
@@ -50,30 +51,57 @@ const legales = [
 function Pie() {
   const { contacto, legal, retiro } = tienda;
   // Número para wa.me: 54 9 + código de área y número (sin el 0 ni el 15).
-  const digitos = contacto.whatsapp.replace(/\D/g, "");
+  const digitos = contacto.whatsapp.replace(/D/g, "");
   const whatsapp = digitos.startsWith("54") ? digitos : `549${digitos.replace(/^0/, "")}`;
+  const link = "hover:text-neutral-900 hover:underline underline-offset-4";
 
   return (
-    <footer className="mt-16 border-t border-neutral-200">
-      <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 text-sm text-neutral-600 sm:grid-cols-3">
-        <div>
-          <p className="font-medium text-neutral-900">{tienda.nombre}</p>
-          <p className="mt-1">{tienda.descripcion}</p>
-          <p className="mt-3">
-            Local: <Dato valor={retiro.direccion} />
-            <br />
-            <Dato valor={retiro.horarios} />
-          </p>
+    <footer className="mt-20 border-t border-neutral-200 bg-neutral-50 text-sm text-neutral-600">
+      <div className="mx-auto grid w-full max-w-7xl gap-x-8 px-4 pt-10 pb-6 md:grid-cols-[1.4fr_1fr_1fr_1.2fr] md:pb-10">
+        <div className="pb-6 md:pb-0">
+          <p className="text-lg font-bold text-neutral-900">{tienda.nombre}</p>
+          <p className="mt-2 max-w-xs">{tienda.descripcion}</p>
+          {/* Botón de arrepentimiento: obligatorio y de fácil acceso (Res. SCI 424/2020).
+              Fuera de las secciones plegables: siempre a la vista. */}
+          <Link
+            href="/arrepentimiento"
+            className="mt-5 inline-flex rounded-md border border-neutral-900 px-4 py-2 font-medium text-neutral-900 hover:bg-neutral-900 hover:text-white"
+          >
+            Botón de arrepentimiento
+          </Link>
         </div>
 
-        <div>
-          <p className="font-medium text-neutral-900">Contacto</p>
-          <ul className="mt-1 space-y-1">
+        <ColumnaPie titulo="Comprar">
+          <ul className="space-y-2">
+            {[...enlacesSecciones, { href: "/productos", nombre: "Todos los productos" }].map((e) => (
+              <li key={e.href}>
+                <Link href={e.href} className={link}>
+                  {e.nombre}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </ColumnaPie>
+
+        <ColumnaPie titulo="Ayuda">
+          <ul className="space-y-2">
+            {legales.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className={link}>
+                  {l.nombre}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </ColumnaPie>
+
+        <ColumnaPie titulo="Contacto">
+          <ul className="space-y-2">
             <li>
               {faltaCompletar(contacto.email) ? (
                 <Dato valor={contacto.email} />
               ) : (
-                <a href={`mailto:${contacto.email}`} className="hover:text-neutral-900">
+                <a href={`mailto:${contacto.email}`} className={link}>
                   {contacto.email}
                 </a>
               )}
@@ -82,7 +110,7 @@ function Pie() {
               {faltaCompletar(contacto.whatsapp) ? (
                 <Dato valor={contacto.whatsapp} />
               ) : (
-                <a href={`https://wa.me/${whatsapp}`} className="hover:text-neutral-900">
+                <a href={`https://wa.me/${whatsapp}`} className={link}>
                   WhatsApp {contacto.whatsapp}
                 </a>
               )}
@@ -92,42 +120,26 @@ function Pie() {
                 {faltaCompletar(contacto.instagram) ? (
                   <Dato valor={contacto.instagram} />
                 ) : (
-                  <a href={`https://instagram.com/${contacto.instagram}`} className="hover:text-neutral-900">
+                  <a href={`https://instagram.com/${contacto.instagram}`} className={link}>
                     Instagram @{contacto.instagram}
                   </a>
                 )}
               </li>
             )}
-          </ul>
-        </div>
-
-        <div>
-          <p className="font-medium text-neutral-900">Información legal</p>
-          <ul className="mt-1 space-y-1">
-            {legales.map((l) => (
-              <li key={l.href}>
-                <Link href={l.href} className="hover:text-neutral-900">
-                  {l.nombre}
-                </Link>
-              </li>
-            ))}
-            <li>
-              {/* Botón de arrepentimiento: obligatorio y de fácil acceso (Res. SCI 424/2020). */}
-              <Link
-                href="/arrepentimiento"
-                className="mt-1 inline-block rounded-md border border-neutral-900 px-3 py-1 font-medium text-neutral-900 hover:bg-neutral-100"
-              >
-                Botón de arrepentimiento
-              </Link>
+            <li className="pt-2">
+              <span className="block font-medium text-neutral-900">Local</span>
+              <Dato valor={retiro.direccion} />
+              <br />
+              <Dato valor={retiro.horarios} />
             </li>
           </ul>
-        </div>
+        </ColumnaPie>
       </div>
 
       <div className="border-t border-neutral-200">
-        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 text-xs text-neutral-500">
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-5 text-xs text-neutral-500">
           <p>
-            <Dato valor={legal.titular} /> · CUIT <Dato valor={legal.cuit} />
+            © {tienda.nombre} · <Dato valor={legal.titular} /> · CUIT <Dato valor={legal.cuit} />
           </p>
           <div className="flex items-center gap-4">
             {/* Link a la Ventanilla Única Federal de reclamos (Res. SCI 274/2021). */}
@@ -135,7 +147,7 @@ function Pie() {
               href="https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline hover:text-neutral-900"
+              className="underline underline-offset-2 hover:text-neutral-900"
             >
               Defensa de las y los Consumidores. Para reclamos ingrese aquí
             </a>
@@ -157,6 +169,28 @@ function Pie() {
         </div>
       </div>
     </footer>
+  );
+}
+
+/**
+ * Columna del pie: en la compu, título y contenido a la vista; en el celular,
+ * una sección plegable (se toca el título para abrirla).
+ */
+function ColumnaPie({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <>
+      <details className="group border-t border-neutral-200 md:hidden">
+        <summary className="flex cursor-pointer list-none items-center justify-between py-4 font-medium text-neutral-900 [&::-webkit-details-marker]:hidden">
+          {titulo}
+          <IconoChevron className="size-5 text-neutral-500 transition-transform duration-200 group-open:rotate-180" />
+        </summary>
+        <div className="pb-5">{children}</div>
+      </details>
+      <div className="hidden md:block">
+        <p className="mb-4 font-medium text-neutral-900">{titulo}</p>
+        {children}
+      </div>
+    </>
   );
 }
 

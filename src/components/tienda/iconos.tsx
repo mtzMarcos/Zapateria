@@ -113,3 +113,21 @@ export const IconoPlay = (p: Props) => (
     <path d="M8 5.5v13l10-6.5z" />
   </Icono>
 );
+
+export const IconoMas = (p: Props) => (
+  <Icono {...p}>
+    <path d="M12 5v14M5 12h14" />
+  </Icono>
+);
+
+export const IconoMenos = (p: Props) => (
+  <Icono {...p}>
+    <path d="M5 12h14" />
+  </Icono>
+);
+
+export const IconoChevron = (p: Props) => (
+  <Icono {...p}>
+    <path d="M6 9l6 6 6-6" />
+  </Icono>
+);

@@ -5,6 +5,7 @@ import { tienda } from "@/config/tienda";
 import { detalleCarrito, leerCarrito, problemaItem, subtotal } from "@/lib/carrito";
 import { obtenerZonas } from "@/lib/envios";
 import { formatearPrecio } from "@/lib/formato";
+import { IconoChevron } from "@/components/tienda/iconos";
 import { PasosCompra } from "@/components/tienda/pasos-compra";
 import { FormularioCheckout } from "./formulario";
 import { TransicionPagina } from "@/components/tienda/transicion-pagina";
@@ -19,7 +20,7 @@ export default function CheckoutPage() {
     <TransicionPagina>
       <main className="mx-auto w-full max-w-5xl px-4 pt-6 pb-10 md:py-8">
         <PasosCompra actual={1} />
-        <h1 className="mb-6 text-2xl font-bold md:mb-8 md:text-3xl">Finalizar compra</h1>
+        <h1 className="titulo-pagina mb-6 md:mb-8">Finalizar compra</h1>
         <Suspense fallback={<CheckoutCargando />}>
           <Checkout />
         </Suspense>
@@ -80,12 +81,10 @@ async function Checkout() {
       {/* En el celular el resumen va arriba, plegado; en la compu, al costado. */}
       <details className="group rounded-lg bg-neutral-50 md:hidden">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 [&::-webkit-details-marker]:hidden">
-          <span className="text-sm font-medium">
+          <span className="flex items-center gap-1 text-sm font-medium">
             <span className="group-open:hidden">Ver resumen del pedido</span>
             <span className="hidden group-open:inline">Ocultar resumen</span>
-            <span className="ml-1 text-neutral-500" aria-hidden>
-              ▾
-            </span>
+            <IconoChevron className="size-4 text-neutral-500 transition-transform duration-200 group-open:rotate-180" />
           </span>
           <span className="font-semibold">{formatearPrecio(subtotal(items))}</span>
         </summary>
@@ -104,13 +103,13 @@ async function Checkout() {
 
 /** Mientras carga: la forma del formulario y del resumen, para que nada salte al llegar. */
 function CheckoutCargando() {
-  const campo = <div className="h-16 animate-pulse rounded-md bg-neutral-100" />;
+  const campo = <div className="h-16 brillo rounded-md bg-neutral-100" />;
   return (
     <div className="grid gap-8 md:grid-cols-[1fr_20rem] md:gap-10" aria-hidden>
-      <div className="h-14 animate-pulse rounded-lg bg-neutral-100 md:hidden" />
+      <div className="h-14 brillo rounded-lg bg-neutral-100 md:hidden" />
       <div className="space-y-8">
         <div className="space-y-4">
-          <div className="h-6 w-32 animate-pulse rounded bg-neutral-100" />
+          <div className="h-6 w-32 brillo rounded bg-neutral-100" />
           {campo}
           <div className="grid gap-4 sm:grid-cols-2">
             {campo}
@@ -118,20 +117,20 @@ function CheckoutCargando() {
           </div>
         </div>
         <div className="space-y-3">
-          <div className="h-6 w-24 animate-pulse rounded bg-neutral-100" />
-          <div className="h-20 animate-pulse rounded-md bg-neutral-100" />
-          <div className="h-20 animate-pulse rounded-md bg-neutral-100" />
+          <div className="h-6 w-24 brillo rounded bg-neutral-100" />
+          <div className="h-20 brillo rounded-md bg-neutral-100" />
+          <div className="h-20 brillo rounded-md bg-neutral-100" />
         </div>
         <div className="space-y-4">
-          <div className="h-6 w-40 animate-pulse rounded bg-neutral-100" />
+          <div className="h-6 w-40 brillo rounded bg-neutral-100" />
           {campo}
           {campo}
           {campo}
           {campo}
         </div>
-        <div className="h-48 animate-pulse rounded-md bg-neutral-100" />
+        <div className="h-48 brillo rounded-md bg-neutral-100" />
       </div>
-      <div className="hidden h-48 animate-pulse rounded-lg bg-neutral-100 md:block" />
+      <div className="hidden h-48 brillo rounded-lg bg-neutral-100 md:block" />
     </div>
   );
 }

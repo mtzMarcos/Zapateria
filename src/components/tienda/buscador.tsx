@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { Foto } from "./foto";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { formatearPrecio } from "@/lib/formato";
@@ -70,7 +70,7 @@ function ListaSugerencias({
                 className="flex items-center gap-3 px-4 py-2 hover:bg-neutral-100 focus-visible:bg-neutral-100"
               >
                 <span className="relative size-12 shrink-0 overflow-hidden rounded bg-neutral-100">
-                  {p.foto && <Image src={p.foto} alt="" fill sizes="48px" className="object-cover" />}
+                  {p.foto && <Foto src={p.foto} alt="" fill sizes="48px" className="object-cover" />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium">{p.nombre}</span>

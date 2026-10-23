@@ -100,7 +100,6 @@ try {
   const precio = (await db.from("products").select("compare_at_price").eq("id", producto.id).single()).data.compare_at_price;
   check(Number(precio) === Number(producto.price) + 10000, "queda en la base");
 } finally {
-  nav?.cerrar();
   // Dejar todo como estaba: archivos de prueba, portadas, logo, precio y admin.
   const { data: ahora } = await db.from("home_slides").select("image_path, mobile_image_path");
   const { data: m } = await db.from("brands").select("logo_path").eq("id", marca.id).single();
@@ -118,6 +117,15 @@ try {
   await db.from("brands").update({ logo_path: marca.logo_path }).eq("id", marca.id);
   await db.from("products").update({ compare_at_price: producto.compare_at_price }).eq("id", producto.id);
   if (archivos.length) await db.storage.from("product-images").remove(archivos);
+  // Lo restaurado se escribió directo en la base: guardar el anuncio sin cambios
+  // desde el panel refresca la caché de la tienda (si no, el servidor de pruebas
+  // seguiría mostrando la portada y el logo de prueba).
+  if (nav) {
+    await nav.ir("/admin/portada");
+    await nav.evaluar(`[...document.querySelectorAll("button")].find((b) => b.textContent === "Guardar anuncio")?.click()`);
+    check(await nav.hasta(`document.body.innerText.includes("Anuncio guardado.")`), "al terminar, la tienda vuelve a mostrar lo de antes (caché refrescada)");
+    nav.cerrar();
+  }
   await borrarAdmin(admin);
   console.log(`\nLimpieza: ${archivos.length} archivos de prueba borrados; portadas, logo y precio restaurados; admin temporal borrado.`);
   terminar("Panel en el navegador");

@@ -11,6 +11,26 @@ comprobaciones: funciones SQL, carrito y checkout, pago, panel de pedidos, arrep
 navegador (tienda y panel). Viven en `scripts/pruebas/` (antes estaban en una carpeta temporal y se perdieron).
 Todas pasaron contra `mejoras-celular` antes de pasarla a `main`.
 
+**Rama `pulido-visual` (2026-10-23, en revisión con la vista previa de Vercel, sin pasar a `main`):**
+
+- Tarjetas: solo zoom leve al pasar el mouse (sin segunda foto); el catálogo vuelve a traer una foto por producto.
+- Fundido cruzado en el carrusel de portada y en la galería del producto (deslizar con el dedo, puntitos,
+  miniaturas o flechas del teclado). Las fotos que no se ven al principio se piden cuando la página terminó de cargar.
+- Fotos con fundido al cargar (componente `Foto`): el HTML las trae visibles y el fundido se activa solo para las que
+  todavía no cargaron al arrancar el JavaScript (no demora el LCP).
+- Botones y links con transiciones suaves y un leve "hundimiento" al presionar; desplazamiento suave para los links
+  dentro de la misma página (`data-scroll-behavior="smooth"`: al cambiar de página no anima).
+- Esqueletos de carga con brillo suave (clase `brillo`) en lugar del parpadeo.
+- Tipografía Inter (next/font, servida desde la tienda). Antes el cuerpo usaba Arial y Geist se descargaba sin usarse.
+  Redondeos y sombras unificados como variables del tema, títulos con `titulo-pagina` / `titulo-seccion`, y los
+  caracteres sueltos (▾, +, −) cambiados por íconos del mismo juego.
+- Pie: 4 columnas en la compu; en el celular, Comprar/Ayuda/Contacto plegables y el botón de arrepentimiento siempre
+  a la vista.
+- La aparición al hacer scroll ya no vuelve transparente el texto (solo sube; las fotos se funden): Lighthouse marcaba
+  falta de contraste a mitad de la animación.
+- Pruebas: 8 pruebas, 188 comprobaciones, todas OK. Lighthouse con animaciones: igual o mejor que `main` en todas las
+  páginas (96–98 en celular, 100 en compu, accesibilidad 100, CLS 0).
+
 **Rama `mejoras-celular` (pasada a `main` el 2026-10-23):**
 
 - Diseño para celular y arreglos de Lighthouse: encabezado en una línea, filtros en panel, producto con fotos

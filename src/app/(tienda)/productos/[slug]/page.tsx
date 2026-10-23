@@ -8,7 +8,14 @@ import { descuento, formatearPrecio } from "@/lib/formato";
 import { urlSitio } from "@/lib/sitio";
 import { tienda } from "@/config/tienda";
 import { Dato } from "@/components/tienda/dato";
-import { IconoCambio, IconoCamion, IconoCandado, IconoLocal, IconoRegla } from "@/components/tienda/iconos";
+import {
+  IconoCambio,
+  IconoCamion,
+  IconoCandado,
+  IconoLocal,
+  IconoMas,
+  IconoRegla,
+} from "@/components/tienda/iconos";
 import { GrillaProductos } from "@/components/tienda/producto-card";
 import { Galeria } from "./galeria";
 import { SelectorTalle } from "./selector-talle";
@@ -111,7 +118,7 @@ async function Ficha({ params }: Pick<PageProps<"/productos/[slug]">, "params">)
               {producto.marca.name}
             </Link>
           )}
-          <h1 className="mt-1 text-2xl font-bold md:text-3xl">{producto.name}</h1>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">{producto.name}</h1>
           <p className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <span className="text-2xl font-semibold">{formatearPrecio(producto.price)}</span>
             {producto.precioAnterior !== null && (
@@ -135,9 +142,7 @@ async function Ficha({ params }: Pick<PageProps<"/productos/[slug]">, "params">)
             <summary className="flex cursor-pointer list-none items-center gap-3 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
               <IconoRegla className="size-5 text-neutral-500" />
               Guía de talles
-              <span className="ml-auto text-neutral-500 transition-transform group-open:rotate-45" aria-hidden>
-                +
-              </span>
+              <IconoMas className="ml-auto size-4 text-neutral-500 transition-transform duration-200 group-open:rotate-45" />
             </summary>
             <p className="pb-4 text-sm text-neutral-700">
               <Dato valor={tienda.guiaTalles} />
@@ -221,16 +226,16 @@ function FichaCargando() {
     // Misma forma que la ficha (foto, nombre, precio, talles y beneficios), para
     // que el pie de página no salte cuando llega el contenido.
     <div aria-hidden>
-      <div className="mb-4 h-5 w-40 animate-pulse rounded bg-neutral-100 md:mb-6" />
+      <div className="mb-4 h-5 w-40 brillo rounded bg-neutral-100 md:mb-6" />
       <div className="grid gap-8 md:grid-cols-2 md:gap-12">
-        <div className="-mx-4 aspect-square animate-pulse bg-neutral-100 md:mx-0 md:rounded-lg" />
+        <div className="-mx-4 aspect-square brillo bg-neutral-100 md:mx-0 md:rounded-lg" />
         <div className="space-y-4">
-          <div className="h-4 w-20 animate-pulse rounded bg-neutral-100" />
-          <div className="h-9 w-3/4 animate-pulse rounded bg-neutral-100" />
-          <div className="h-8 w-1/3 animate-pulse rounded bg-neutral-100" />
-          <div className="h-40 animate-pulse rounded bg-neutral-100" />
-          <div className="h-12 animate-pulse rounded bg-neutral-100" />
-          <div className="h-56 animate-pulse rounded bg-neutral-100" />
+          <div className="h-4 w-20 brillo rounded bg-neutral-100" />
+          <div className="h-9 w-3/4 brillo rounded bg-neutral-100" />
+          <div className="h-8 w-1/3 brillo rounded bg-neutral-100" />
+          <div className="h-40 brillo rounded bg-neutral-100" />
+          <div className="h-12 brillo rounded bg-neutral-100" />
+          <div className="h-56 brillo rounded bg-neutral-100" />
         </div>
       </div>
     </div>

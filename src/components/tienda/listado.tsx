@@ -174,11 +174,11 @@ export function ListadoCargando() {
     <div aria-hidden>
       <div className="mb-8 hidden space-y-3 md:block">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-8 w-2/3 animate-pulse rounded-full bg-neutral-100" />
+          <div key={i} className="h-8 w-2/3 brillo rounded-full bg-neutral-100" />
         ))}
       </div>
-      <div className="mb-4 h-10 w-44 animate-pulse rounded-full bg-neutral-100 md:hidden" />
-      <div className="mb-4 hidden h-5 w-24 animate-pulse rounded bg-neutral-100 md:block" />
+      <div className="mb-4 h-10 w-44 brillo rounded-full bg-neutral-100 md:hidden" />
+      <div className="mb-4 hidden h-5 w-24 brillo rounded bg-neutral-100 md:block" />
       <GrillaCargando />
     </div>
   );

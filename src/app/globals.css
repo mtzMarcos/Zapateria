@@ -1,8 +1,47 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/*
+ * Sistema visual: los mismos redondeos y sombras en toda la tienda y el panel.
+ * - rounded-md: botones, campos y controles chicos (8 px).
+ * - rounded-lg: tarjetas, fotos, paneles y recuadros (12 px).
+ * - rounded-full: chips, etiquetas y botones redondos.
+ * - shadow: elementos que flotan apenas (flechas); shadow-lg: menús y desplegables.
+ */
+@theme {
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 2px 6px rgb(0 0 0 / 0.06);
+  --shadow-lg: 0 4px 12px rgb(0 0 0 / 0.08), 0 16px 40px -12px rgb(0 0 0 / 0.18);
+}
+
+/* Títulos: los de página (listados, carrito, checkout) y los de sección del inicio. */
+@utility titulo-pagina {
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+  @media (width >= 40rem) {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+}
+
+@utility titulo-seccion {
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+  @media (width >= 40rem) {
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+  }
 }
 
 /* Gris de los textos secundarios un poco más oscuro que el de Tailwind
@@ -60,7 +99,28 @@
   body {
     background: var(--color-white);
     color: var(--color-neutral-900);
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-sans);
+  }
+
+  /* Links dentro de la misma página (#…): desplazamiento suave. Al cambiar de
+     página Next salta arriba sin animación (data-scroll-behavior en el layout). */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Botones y links: cambios de color suaves al pasar el mouse y un leve
+     "hundimiento" al presionar. Usa la propiedad scale (no transform), así no
+     pisa los translate de los botones posicionados. */
+  a,
+  button,
+  summary {
+    transition-property: color, background-color, border-color, text-decoration-color, box-shadow, opacity, scale;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+  button:not(:disabled):active,
+  summary:active {
+    scale: 0.97;
   }
 
   /* Campos de formulario: mismo fondo y texto que la página, también en las
@@ -118,22 +178,64 @@
   }
 }
 
+/* Esqueletos de carga: un brillo suave que recorre el bloque gris. */
+@keyframes brillo {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+.brillo {
+  background-color: var(--color-neutral-100);
+  background-image: linear-gradient(
+    90deg,
+    transparent 25%,
+    color-mix(in oklab, var(--color-neutral-200) 70%, transparent) 50%,
+    transparent 75%
+  );
+  background-size: 200% 100%;
+  animation: brillo 1.6s ease-in-out infinite;
+}
+
+/* Fotos: aparecen con un fundido suave cuando terminan de cargar (componente
+   Foto; solo las que todavía no cargaron cuando arranca el JavaScript). */
+.foto-suave {
+  opacity: 0;
+  transition: opacity 400ms ease-out;
+}
+.foto-suave[data-cargada] {
+  opacity: 1;
+}
+
 /* Aparición al hacer scroll: la animación avanza con el scroll mientras el
    elemento entra en pantalla (sin JavaScript). Lo que ya se ve al cargar
-   aparece terminado. Navegadores sin soporte: se ve normal, sin animación. */
+   aparece terminado. Navegadores sin soporte: se ve normal, sin animación.
+   - .subir: tarjetas y secciones suben 12 px. El texto nunca se vuelve
+     transparente, así no pierde contraste en ningún momento.
+   - .aparecer: las fotos, además, se funden. */
+@keyframes subir {
+  from {
+    translate: 0 12px;
+  }
+}
 @keyframes aparecer {
   from {
     opacity: 0;
-    translate: 0 12px;
   }
 }
 
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
+    .subir,
     .aparecer {
-      animation: aparecer ease-out both;
+      animation: subir ease-out both;
       animation-timeline: view();
       animation-range: entry 0% entry 45%;
+    }
+    .aparecer {
+      animation-name: aparecer;
     }
   }
 }

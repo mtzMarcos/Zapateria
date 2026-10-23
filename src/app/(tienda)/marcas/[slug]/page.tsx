@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import { Foto } from "@/components/tienda/foto";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { obtenerMarcas } from "@/lib/catalogo";
@@ -45,7 +45,7 @@ export default function MarcaPage({ params, searchParams }: PageProps<"/marcas/[
 function TituloCargando() {
   return (
     <div aria-hidden>
-      <div className="mb-6 h-16 w-64 animate-pulse rounded bg-neutral-100" />
+      <div className="mb-6 h-16 w-64 brillo rounded bg-neutral-100" />
       <ListadoCargando />
     </div>
   );
@@ -60,10 +60,10 @@ async function Marca({ params, searchParams }: PageProps<"/marcas/[slug]">) {
       <div className="mb-6 flex items-center gap-4">
         {marca.logo && (
           <span className="relative h-16 w-28 shrink-0 overflow-hidden rounded-lg border border-neutral-200 bg-[#fff]">
-            <Image src={marca.logo} alt="" fill sizes="112px" className="object-contain p-2" />
+            <Foto src={marca.logo} alt="" fill sizes="112px" className="object-contain p-2" />
           </span>
         )}
-        <h1 className="text-3xl font-bold tracking-tight uppercase sm:text-4xl">{marca.name}</h1>
+        <h1 className="titulo-pagina">{marca.name}</h1>
       </div>
       <Suspense fallback={<ListadoCargando />}>
         <Listado

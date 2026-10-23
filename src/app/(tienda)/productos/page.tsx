@@ -11,7 +11,7 @@ export default function ProductosPage({ searchParams }: PageProps<"/productos">)
   return (
     <TransicionPagina>
       <main className="mx-auto w-full max-w-7xl px-4 py-8">
-        <h1 className="mb-6 text-3xl font-bold">Productos</h1>
+        <h1 className="titulo-pagina mb-6">Productos</h1>
         {/* Los filtros y la búsqueda dependen de la URL: se resuelven en el momento del request. */}
         <Suspense fallback={<ListadoCargando />}>
           <Listado searchParams={searchParams} />

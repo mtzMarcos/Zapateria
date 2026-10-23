@@ -39,7 +39,7 @@ async function Seccion({ params, searchParams }: PageProps<"/[seccion]">) {
 
   return (
     <>
-      <h1 className="text-3xl font-bold tracking-tight uppercase sm:text-4xl">{seccion.nombre}</h1>
+      <h1 className="titulo-pagina">{seccion.nombre}</h1>
       <p className="mt-2 mb-6 text-neutral-600">{seccion.descripcion}</p>
       <Suspense fallback={<ListadoCargando />}>
         <Listado searchParams={searchParams} incluye={seccion.incluye} ruta={`/${seccion.slug}`} />
@@ -51,8 +51,8 @@ async function Seccion({ params, searchParams }: PageProps<"/[seccion]">) {
 function TituloCargando() {
   return (
     <div aria-hidden>
-      <div className="h-10 w-48 animate-pulse rounded bg-neutral-100" />
-      <div className="mt-3 mb-6 h-5 w-72 animate-pulse rounded bg-neutral-100" />
+      <div className="h-10 w-48 brillo rounded bg-neutral-100" />
+      <div className="mt-3 mb-6 h-5 w-72 brillo rounded bg-neutral-100" />
       <ListadoCargando />
     </div>
   );

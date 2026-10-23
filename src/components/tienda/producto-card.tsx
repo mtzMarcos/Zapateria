@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Foto } from "./foto";
 import Link from "next/link";
 import { ViewTransition } from "react";
 import type { ProductoResumen } from "@/lib/catalogo";
@@ -29,8 +29,8 @@ export function GrillaProductos({
   return (
     <ul className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-4 md:grid-cols-3 lg:grid-cols-4">
       {productos.map((p, i) => (
-        // aparecer: fundido suave al entrar en pantalla con el scroll (globals.css).
-        <li key={p.id} className="aparecer">
+        // subir / aparecer: la tarjeta sube y la foto se funde al entrar en pantalla con el scroll (globals.css).
+        <li key={p.id} className="subir">
           <ProductoCard producto={p} prioridad={i < prioridad} viajar={viajar} />
         </li>
       ))}
@@ -58,12 +58,12 @@ function ProductoCard({
       prefetch
       className="group block rounded-lg transition-transform active:scale-[0.98]"
     >
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100">
+      <div className="aparecer relative aspect-square overflow-hidden rounded-lg bg-neutral-100">
         {/* Al entrar al producto, esta foto "viaja" hasta la foto principal (mismo name en la galería). */}
         <ViewTransition name={viajar ? `foto-${producto.id}` : undefined} share="morph" default="none">
           <div className={`absolute inset-0 ${agotado ? "opacity-60" : ""}`}>
             {producto.portada ? (
-              <Image
+              <Foto
                 src={producto.portada}
                 alt={producto.name}
                 fill
@@ -76,18 +76,6 @@ function ProductoCard({
               <span className="flex h-full items-center justify-center text-sm text-neutral-500">
                 Sin foto
               </span>
-            )}
-            {/* Segunda foto al pasar el mouse. Solo en equipos con mouse: en el celular
-                queda oculta (display: none) y el navegador no la descarga. */}
-            {producto.segundaFoto && (
-              <Image
-                src={producto.segundaFoto}
-                alt=""
-                fill
-                loading="lazy"
-                sizes={TAMANIOS}
-                className="hidden object-cover opacity-0 transition-[opacity,scale] duration-300 ease-out group-hover:scale-[1.03] group-hover:opacity-100 [@media(hover:hover)]:block"
-              />
             )}
           </div>
         </ViewTransition>
@@ -131,10 +119,10 @@ export function GrillaCargando({ cantidad = 8 }: { cantidad?: number }) {
     <ul className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-4 md:grid-cols-3 lg:grid-cols-4" aria-hidden>
       {Array.from({ length: cantidad }, (_, i) => (
         <li key={i}>
-          <div className="aspect-square animate-pulse rounded-lg bg-neutral-100" />
-          <div className="mt-3 h-3 w-1/4 animate-pulse rounded bg-neutral-100" />
-          <div className="mt-2 h-4 w-3/4 animate-pulse rounded bg-neutral-100" />
-          <div className="mt-2 h-4 w-1/3 animate-pulse rounded bg-neutral-100" />
+          <div className="aspect-square brillo rounded-lg bg-neutral-100" />
+          <div className="mt-3 h-3 w-1/4 brillo rounded bg-neutral-100" />
+          <div className="mt-2 h-4 w-3/4 brillo rounded bg-neutral-100" />
+          <div className="mt-2 h-4 w-1/3 brillo rounded bg-neutral-100" />
         </li>
       ))}
     </ul>

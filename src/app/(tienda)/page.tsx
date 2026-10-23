@@ -38,7 +38,7 @@ export default async function Home() {
         <main className="mx-auto w-full max-w-7xl px-4">
           <section className="mt-12 sm:mt-16">
             <div className="mb-6 flex items-baseline justify-between">
-              <h2 className="text-xl font-bold tracking-tight uppercase sm:text-2xl">Novedades</h2>
+              <h2 className="titulo-seccion">Novedades</h2>
               {catalogo.length > novedades.length && (
                 <Link href="/productos" className="text-sm font-medium underline underline-offset-4">
                   Ver todo
@@ -53,15 +53,15 @@ export default async function Home() {
           </section>
 
           {marcas.length > 0 && (
-            <section className="aparecer mt-16">
-              <h2 className="mb-6 text-center text-xl font-bold tracking-tight uppercase sm:text-2xl">Marcas</h2>
+            <section className="subir mt-16">
+              <h2 className="titulo-seccion mb-6 text-center">Marcas</h2>
               <FranjaMarcas marcas={marcas} />
             </section>
           )}
 
           {categorias.length > 0 && (
-            <section className="aparecer mt-16">
-              <h2 className="mb-6 text-xl font-bold tracking-tight uppercase sm:text-2xl">Categorías</h2>
+            <section className="subir mt-16">
+              <h2 className="titulo-seccion mb-6">Categorías</h2>
               <ul className="flex flex-wrap gap-3">
                 {categorias.map((c) => (
                   <li key={c.slug}>

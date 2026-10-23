@@ -50,7 +50,7 @@ export default function PedidoPage({ params, searchParams }: PageProps<"/pedido/
   return (
     <TransicionPagina>
       <main className="mx-auto w-full max-w-2xl px-4 py-12">
-        <Suspense fallback={<div className="h-80 animate-pulse rounded-lg bg-neutral-100" />}>
+        <Suspense fallback={<div className="h-80 brillo rounded-lg bg-neutral-100" />}>
           <Pedido params={params} searchParams={searchParams} />
         </Suspense>
       </main>
@@ -88,7 +88,7 @@ async function Pedido({
       </p>
       {estado === "pagado" && (
         <>
-          <h1 className="mt-2 text-3xl font-bold">¡Gracias, {nombre}!</h1>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">¡Gracias, {nombre}!</h1>
           <p className="mt-3 text-neutral-600">
             Recibimos el pago de tu pedido {numero}. Te vamos a contactar a {email} para coordinar{" "}
             {envio ? "el envío" : "el retiro"}.
@@ -97,7 +97,7 @@ async function Pedido({
       )}
       {estado === "procesando" && (
         <>
-          <h1 className="mt-2 text-3xl font-bold">Tu pago se está procesando</h1>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Tu pago se está procesando</h1>
           <p className="mt-3 text-neutral-600">
             Mercado Pago está procesando el pago de tu pedido {numero}. Cuando se acredite, el pedido
             queda confirmado. Podés volver a esta página para ver cómo sigue.
@@ -107,7 +107,7 @@ async function Pedido({
       )}
       {estado === "sin_pagar" && (
         <>
-          <h1 className="mt-2 text-3xl font-bold">Falta el pago</h1>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Falta el pago</h1>
           <p className="mt-3 text-neutral-600">
             Tu pedido {numero} está guardado, pero todavía no recibimos el pago.
           </p>
@@ -116,7 +116,7 @@ async function Pedido({
       )}
       {estado === "rechazado" && (
         <>
-          <h1 className="mt-2 text-3xl font-bold">El pago no se aprobó</h1>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">El pago no se aprobó</h1>
           <p className="mt-3 text-neutral-600">
             Mercado Pago rechazó el pago de tu pedido {numero}. Podés intentar de nuevo con otro medio
             de pago.
@@ -126,7 +126,7 @@ async function Pedido({
       )}
       {estado === "sin_stock" && (
         <>
-          <h1 className="mt-2 text-3xl font-bold">Recibimos tu pago</h1>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Recibimos tu pago</h1>
           <p className="mt-3 text-neutral-600">
             Mientras pagabas, otra persona compró la última unidad de un producto de tu pedido {numero}.
             Te vamos a contactar a {email} para ofrecerte un cambio o devolverte el dinero.
@@ -135,7 +135,7 @@ async function Pedido({
       )}
       {estado === "cancelado" && (
         <>
-          <h1 className="mt-2 text-3xl font-bold">Pedido cancelado</h1>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Pedido cancelado</h1>
           <p className="mt-3 text-neutral-600">El pedido {numero} fue cancelado.</p>
         </>
       )}

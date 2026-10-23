@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { Foto } from "./foto";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Marca } from "@/lib/catalogo";
@@ -53,7 +53,7 @@ export function FranjaMarcas({ marcas }: { marcas: Marca[] }) {
               {m.logo ? (
                 <>
                   <span className="relative h-14 w-full sm:h-16">
-                    <Image src={m.logo} alt="" fill sizes="176px" className="object-contain" />
+                    <Foto src={m.logo} alt="" fill sizes="176px" className="object-contain" />
                   </span>
                   <span className="text-sm font-medium">{m.name}</span>
                 </>
