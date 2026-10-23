@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { buscarSeccion, secciones } from "@/lib/secciones";
 import { Listado, ListadoCargando } from "@/components/tienda/listado";
+import { TransicionPagina } from "@/components/tienda/transicion-pagina";
 
 // Secciones del menú principal: /mujer, /hombre, /ninos, /tendencias, /deportes
 // y /outlet. Cada una es el catálogo con los filtros, limitado a sus productos
@@ -22,11 +23,13 @@ export async function generateMetadata({ params }: PageProps<"/[seccion]">): Pro
 // se generan al compilar, así que en la práctica aparecen al instante).
 export default function SeccionPage({ params, searchParams }: PageProps<"/[seccion]">) {
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8">
-      <Suspense fallback={<TituloCargando />}>
-        <Seccion params={params} searchParams={searchParams} />
-      </Suspense>
-    </main>
+    <TransicionPagina>
+      <main className="mx-auto w-full max-w-7xl px-4 py-8">
+        <Suspense fallback={<TituloCargando />}>
+          <Seccion params={params} searchParams={searchParams} />
+        </Suspense>
+      </main>
+    </TransicionPagina>
   );
 }
 

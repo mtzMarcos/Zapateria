@@ -27,6 +27,8 @@ export type ProductoResumen = {
   deportes: boolean;
   outlet: boolean;
   portada: string | null;
+  /** Segunda foto (se ve en la tarjeta al pasar el mouse), o null. */
+  segundaFoto: string | null;
   talles: Talle[];
   stockTotal: number;
 };
@@ -71,6 +73,7 @@ function normalizar(fila: FilaProducto): ProductoResumen {
     deportes: fila.is_sports,
     outlet: fila.is_outlet,
     portada: fila.product_images[0] ? urlFoto(fila.product_images[0].storage_path) : null,
+    segundaFoto: fila.product_images[1] ? urlFoto(fila.product_images[1].storage_path) : null,
     talles,
     stockTotal: talles.reduce((total, t) => total + t.stock, 0),
   };
@@ -92,7 +95,8 @@ export async function obtenerCatalogo(): Promise<ProductoResumen[]> {
     .eq("active", true)
     .order("created_at", { ascending: false })
     .order("position", { referencedTable: "product_images" })
-    .limit(1, { referencedTable: "product_images" });
+    // Portada y segunda foto (la de la tarjeta al pasar el mouse).
+    .limit(2, { referencedTable: "product_images" });
   if (error) throw new Error(`No se pudo cargar el catálogo: ${error.message}`);
 
   return (data as unknown as FilaProducto[]).map(normalizar);

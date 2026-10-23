@@ -14,6 +14,7 @@ import { formatearPrecio } from "@/lib/formato";
 import { BotonAccion } from "@/components/tienda/boton-accion";
 import { PasosCompra } from "@/components/tienda/pasos-compra";
 import { ajustarAlStock, cambiarCantidad, quitarDelCarrito } from "./actions";
+import { TransicionPagina } from "@/components/tienda/transicion-pagina";
 
 export const metadata: Metadata = {
   title: "Carrito",
@@ -23,13 +24,15 @@ export const metadata: Metadata = {
 export default function CarritoPage() {
   return (
     // Abajo deja lugar para la barra fija de "Continuar compra" del celular.
-    <main className="mx-auto w-full max-w-4xl px-4 pt-6 pb-32 md:py-8">
-      <PasosCompra actual={0} />
-      <h1 className="mb-6 text-2xl font-bold md:mb-8 md:text-3xl">Carrito</h1>
-      <Suspense fallback={<CarritoCargando />}>
-        <ContenidoCarrito />
-      </Suspense>
-    </main>
+    <TransicionPagina>
+      <main className="mx-auto w-full max-w-4xl px-4 pt-6 pb-32 md:py-8">
+        <PasosCompra actual={0} />
+        <h1 className="mb-6 text-2xl font-bold md:mb-8 md:text-3xl">Carrito</h1>
+        <Suspense fallback={<CarritoCargando />}>
+          <ContenidoCarrito />
+        </Suspense>
+      </main>
+    </TransicionPagina>
   );
 }
 

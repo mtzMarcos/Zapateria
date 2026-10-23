@@ -7,6 +7,7 @@ import { obtenerZonas } from "@/lib/envios";
 import { formatearPrecio } from "@/lib/formato";
 import { PasosCompra } from "@/components/tienda/pasos-compra";
 import { FormularioCheckout } from "./formulario";
+import { TransicionPagina } from "@/components/tienda/transicion-pagina";
 
 export const metadata: Metadata = {
   title: "Finalizar compra",
@@ -15,13 +16,15 @@ export const metadata: Metadata = {
 
 export default function CheckoutPage() {
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 pt-6 pb-10 md:py-8">
-      <PasosCompra actual={1} />
-      <h1 className="mb-6 text-2xl font-bold md:mb-8 md:text-3xl">Finalizar compra</h1>
-      <Suspense fallback={<CheckoutCargando />}>
-        <Checkout />
-      </Suspense>
-    </main>
+    <TransicionPagina>
+      <main className="mx-auto w-full max-w-5xl px-4 pt-6 pb-10 md:py-8">
+        <PasosCompra actual={1} />
+        <h1 className="mb-6 text-2xl font-bold md:mb-8 md:text-3xl">Finalizar compra</h1>
+        <Suspense fallback={<CheckoutCargando />}>
+          <Checkout />
+        </Suspense>
+      </main>
+    </TransicionPagina>
   );
 }
 

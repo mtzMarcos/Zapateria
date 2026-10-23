@@ -54,7 +54,7 @@ function ListaSugerencias({
   const urlTodos = `/productos?q=${encodeURIComponent(q.trim())}`;
 
   return (
-    <div id={idLista}>
+    <div id={idLista} className="transition-opacity duration-200 starting:opacity-0">
       <p aria-live="polite" className="px-4 pt-3 pb-1 text-xs text-neutral-500">
         {resultado.total === 0
           ? `No encontramos productos para “${q.trim()}”.`
@@ -131,7 +131,7 @@ export function BuscadorCompu() {
         className="h-10 w-full rounded-full border-0 bg-neutral-100 pr-4 pl-9 text-sm focus:ring-2 focus:ring-neutral-900 focus:outline-none"
       />
       {abierto && resultado && (
-        <div className="absolute top-full right-0 z-40 mt-2 w-96 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg">
+        <div className="absolute top-full right-0 z-40 mt-2 w-96 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg transition-[opacity,translate] duration-150 ease-out starting:-translate-y-1 starting:opacity-0">
           <ListaSugerencias
             q={q}
             resultado={resultado}
@@ -184,7 +184,12 @@ export function BuscadorCelular() {
       </button>
 
       {abierto && (
-        <div role="dialog" aria-modal="true" aria-label="Buscar productos" className="fixed inset-0 z-50 overflow-y-auto bg-white">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Buscar productos"
+          className="fixed inset-0 z-50 overflow-y-auto bg-white transition-[opacity,translate] duration-200 ease-out starting:translate-y-2 starting:opacity-0"
+        >
           <form action="/productos" role="search" onSubmit={() => setAbierto(false)} className="flex items-center gap-2 border-b border-neutral-200 p-3">
             <div className="relative flex-1">
               <IconoLupa className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-neutral-500" />

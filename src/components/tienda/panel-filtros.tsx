@@ -43,7 +43,7 @@ export function PanelFiltros({
         onClick={(e) => {
           if (e.target === dialogo.current || (e.target as HTMLElement).closest("a")) cerrar();
         }}
-        className="mt-auto mb-0 max-h-[85dvh] w-full max-w-none rounded-t-2xl bg-white p-0 text-neutral-900 backdrop:bg-neutral-900/40"
+        className="hoja-inferior mt-auto mb-0 max-h-[85dvh] w-full max-w-none rounded-t-2xl bg-white p-0 text-neutral-900"
       >
         <div className="sticky top-0 flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3">
           <p className="font-semibold">Filtrar y ordenar</p>

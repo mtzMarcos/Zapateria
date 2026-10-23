@@ -15,7 +15,11 @@ export default function TiendaLayout({ children }: LayoutProps<"/">) {
     <>
       <BarraAnuncio />
       {/* Fijo arriba al bajar. En el celular: menú, nombre, lupa y carrito en una línea. */}
-      <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white">
+      {/* viewTransitionName: el encabezado queda quieto en las transiciones entre páginas. */}
+      <header
+        className="sticky top-0 z-30 border-b border-neutral-200 bg-white"
+        style={{ viewTransitionName: "encabezado" }}
+      >
         <div className="relative mx-auto flex h-14 w-full max-w-7xl items-center gap-2 px-4 md:h-16 md:gap-6">
           <MenuCelular />
           <Link href="/" className="text-lg font-bold md:text-xl">

@@ -12,6 +12,7 @@ import { IconoCambio, IconoCamion, IconoCandado, IconoLocal, IconoRegla } from "
 import { GrillaProductos } from "@/components/tienda/producto-card";
 import { Galeria } from "./galeria";
 import { SelectorTalle } from "./selector-talle";
+import { TransicionPagina } from "@/components/tienda/transicion-pagina";
 
 // Las páginas de los productos se generan al compilar: cargan al instante y los
 // datos para buscadores y redes (título, descripción, foto) van en el <head>.
@@ -48,13 +49,15 @@ export async function generateMetadata({
 export default function ProductoPage({ params }: PageProps<"/productos/[slug]">) {
   return (
     // Abajo deja lugar para la barra fija de "Agregar al carrito" del celular.
-    <main className="mx-auto w-full max-w-7xl px-4 pt-4 pb-28 md:py-8">
-      {/* El slug viene de la URL: se resuelve dentro del Suspense para que
-          el resto de la página (encabezado, pie) se muestre al instante. */}
-      <Suspense fallback={<FichaCargando />}>
-        <Ficha params={params} />
-      </Suspense>
-    </main>
+    <TransicionPagina>
+      <main className="mx-auto w-full max-w-7xl px-4 pt-4 pb-28 md:py-8">
+        {/* El slug viene de la URL: se resuelve dentro del Suspense para que
+            el resto de la página (encabezado, pie) se muestre al instante. */}
+        <Suspense fallback={<FichaCargando />}>
+          <Ficha params={params} />
+        </Suspense>
+      </main>
+    </TransicionPagina>
   );
 }
 
@@ -97,7 +100,7 @@ async function Ficha({ params }: Pick<PageProps<"/productos/[slug]">, "params">)
       </nav>
 
       <div className="grid gap-8 md:grid-cols-2 md:gap-12">
-        <Galeria fotos={producto.fotos} nombre={producto.name} />
+        <Galeria id={producto.id} fotos={producto.fotos} nombre={producto.name} />
 
         <div>
           {producto.marca && (
@@ -155,7 +158,7 @@ async function Ficha({ params }: Pick<PageProps<"/productos/[slug]">, "params">)
       {relacionados.length > 0 && (
         <section className="mt-20">
           <h2 className="mb-6 text-xl font-semibold">También te puede interesar</h2>
-          <GrillaProductos productos={relacionados} />
+          <GrillaProductos productos={relacionados} viajar={false} />
         </section>
       )}
     </>

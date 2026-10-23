@@ -18,6 +18,14 @@ Tienda online (prueba): https://zapateria-mu.vercel.app (Vercel, se publica sola
   rechazado, el formulario no pierde lo escrito ante un error, precio anterior), secciones, marcas, búsqueda y
   sugerencias, ancho de todas las páginas en el celular, capturas en celular y compu. Lighthouse: inicio 96/100/100/100
   en celular y 100 en compu; Outlet, marca y búsqueda 98 en celular.
+- Animaciones sutiles (sin librerías): aparición al hacer scroll (CSS `animation-timeline: view()`), zoom leve y
+  segunda foto al pasar el mouse (en el celular no se descarga), transición de la foto de la tarjeta al producto y
+  fundido entre páginas (`<ViewTransition>` de React; las tarjetas usan `prefetch` completo para que el producto
+  llegue entero), rebote del carrito al agregar, y entrada suave del menú, el buscador, el panel de filtros y los
+  textos del carrusel. 120–300 ms, solo transform/opacity. **Con "reducir movimiento" se apagan todas** (verificado).
+  Lighthouse con las animaciones activas: igual que antes (96–97 en celular, 100 en compu, CLS 0).
+  Ojo al medir: el Edge sin pantalla de esta PC informa "reducir movimiento"; para medir con animaciones, agregar
+  `--force-prefers-no-reduced-motion` a `--chrome-flags`.
 - **Al pasar a `main`:** cargar las fotos de portada reales (o editar/ocultar las de ejemplo) y los logos de las
   marcas reales desde el panel. Logos solo de marcas que el cliente esté autorizado a usar.
 

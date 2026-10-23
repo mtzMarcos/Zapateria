@@ -46,12 +46,17 @@ export function MenuMovil({ enlaces, secundarios }: { enlaces: Enlace[]; secunda
       {abierto && (
         <>
           {/* Fondo oscuro: tocarlo cierra el menú. */}
-          <div className="fixed inset-x-0 bottom-0 z-30 bg-neutral-900/40" style={{ top: abajo }} onClick={cerrar} aria-hidden />
+          <div
+            className="fixed inset-x-0 bottom-0 z-30 bg-neutral-900/40 transition-opacity duration-200 starting:opacity-0"
+            style={{ top: abajo }}
+            onClick={cerrar}
+            aria-hidden
+          />
           <nav
             id={id}
             aria-label="Menú"
             style={{ maxHeight: `calc(100dvh - ${abajo}px)` }}
-            className="absolute inset-x-0 top-full z-40 overflow-y-auto border-b border-neutral-200 bg-white shadow-lg"
+            className="absolute inset-x-0 top-full z-40 overflow-y-auto border-b border-neutral-200 bg-white shadow-lg transition-[opacity,translate] duration-200 ease-out starting:-translate-y-2 starting:opacity-0"
           >
             <ul className="px-4 py-2">
               {enlaces.map((e) => (

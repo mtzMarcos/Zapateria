@@ -69,7 +69,14 @@ export function CarruselPortada({ portadas }: { portadas: Portada[] }) {
         className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {portadas.map((p, i) => (
-          <Diapositiva key={p.id} portada={p} numero={i + 1} total={portadas.length} prioridad={i === 0} />
+          <Diapositiva
+            key={p.id}
+            portada={p}
+            numero={i + 1}
+            total={portadas.length}
+            prioridad={i === 0}
+            activa={i === actual}
+          />
         ))}
       </div>
 
@@ -133,11 +140,13 @@ function Diapositiva({
   numero,
   total,
   prioridad,
+  activa,
 }: {
   portada: Portada;
   numero: number;
   total: number;
   prioridad: boolean;
+  activa: boolean;
 }) {
   return (
     <div
@@ -156,7 +165,12 @@ function Diapositiva({
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-[#000]/60 via-[#000]/15 to-transparent md:bg-gradient-to-r md:from-[#000]/55 md:via-[#000]/20" />
       <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-7xl px-6 pb-16 text-[#fff] md:top-0 md:flex md:flex-col md:justify-center md:px-10 md:pb-0">
-        <div className="max-w-xl">
+        {/* El texto de la portada que se ve aparece suave (sube 12 px y se funde). */}
+        <div
+          className={`max-w-xl transition-[opacity,translate] duration-500 ease-out ${
+            activa ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+          }`}
+        >
           {portada.titulo && (
             <p className="text-3xl leading-tight font-bold tracking-tight uppercase sm:text-4xl md:text-5xl">
               {portada.titulo}

@@ -82,3 +82,151 @@
     opacity: 1;
   }
 }
+
+/*
+ * Animaciones
+ *
+ * Rápidas (150–300 ms) y solo con transform/opacity: no mueven el resto de la
+ * página (sin saltos de layout) y las hace la placa de video. Si el sistema
+ * pide "reducir movimiento", se apagan todas (al final de este archivo).
+ */
+@theme {
+  --animate-rebote: rebote 450ms ease-out;
+  --animate-latido: latido 450ms ease-out;
+
+  @keyframes rebote {
+    0%,
+    100% {
+      transform: none;
+    }
+    30% {
+      transform: translateY(-3px) rotate(-8deg);
+    }
+    60% {
+      transform: translateY(0) rotate(5deg);
+    }
+  }
+
+  @keyframes latido {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.35);
+    }
+  }
+}
+
+/* Aparición al hacer scroll: la animación avanza con el scroll mientras el
+   elemento entra en pantalla (sin JavaScript). Lo que ya se ve al cargar
+   aparece terminado. Navegadores sin soporte: se ve normal, sin animación. */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .aparecer {
+      animation: aparecer ease-out both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+  }
+}
+
+/* Panel de filtros del celular (<dialog>): sube desde abajo al abrirse. */
+.hoja-inferior {
+  translate: 0 100%;
+  transition:
+    translate 250ms ease-out,
+    display 250ms allow-discrete,
+    overlay 250ms allow-discrete;
+}
+.hoja-inferior[open] {
+  translate: 0 0;
+}
+@starting-style {
+  .hoja-inferior[open] {
+    translate: 0 100%;
+  }
+}
+.hoja-inferior::backdrop {
+  background-color: transparent;
+  transition:
+    background-color 250ms ease-out,
+    display 250ms allow-discrete,
+    overlay 250ms allow-discrete;
+}
+.hoja-inferior[open]::backdrop {
+  background-color: rgb(0 0 0 / 0.4);
+}
+@starting-style {
+  .hoja-inferior[open]::backdrop {
+    background-color: transparent;
+  }
+}
+
+/*
+ * Transiciones entre páginas (View Transitions, con <ViewTransition> de React)
+ * - La foto de la tarjeta "viaja" hasta ser la foto del producto (clase morph).
+ * - El contenido de la página cambia con un fundido corto (clases pagina-*).
+ * - El encabezado queda quieto y el resto (fondo, pie) cambia sin animación.
+ * Navegadores sin soporte: cambian de página como siempre.
+ */
+::view-transition {
+  /* Los clics no se pierden mientras dura la transición. */
+  pointer-events: none;
+}
+::view-transition-old(root),
+::view-transition-new(root),
+::view-transition-group(encabezado) {
+  animation: none;
+}
+::view-transition-group(.morph) {
+  animation-duration: 280ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+::view-transition-old(.morph),
+::view-transition-new(.morph) {
+  animation-duration: 280ms;
+}
+@keyframes pagina-entra {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+@keyframes pagina-sale {
+  to {
+    opacity: 0;
+  }
+}
+::view-transition-new(.pagina) {
+  animation: pagina-entra 200ms ease-out both;
+}
+::view-transition-old(.pagina) {
+  animation: pagina-sale 120ms ease-in both;
+}
+
+/* "Reducir movimiento": sin animaciones ni transiciones, ni de página. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after,
+  *::backdrop {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}

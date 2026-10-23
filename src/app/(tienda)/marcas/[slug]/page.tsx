@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { obtenerMarcas } from "@/lib/catalogo";
 import { Listado, ListadoCargando } from "@/components/tienda/listado";
+import { TransicionPagina } from "@/components/tienda/transicion-pagina";
 
 // Página de una marca (/marcas/nike): logo, nombre y sus productos con los
 // filtros. Se generan al compilar; una marca nueva, en su primera visita.
@@ -31,11 +32,13 @@ export async function generateMetadata({ params }: PageProps<"/marcas/[slug]">):
 // La marca sale de la URL: se lee dentro de un <Suspense>.
 export default function MarcaPage({ params, searchParams }: PageProps<"/marcas/[slug]">) {
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8">
-      <Suspense fallback={<TituloCargando />}>
-        <Marca params={params} searchParams={searchParams} />
-      </Suspense>
-    </main>
+    <TransicionPagina>
+      <main className="mx-auto w-full max-w-7xl px-4 py-8">
+        <Suspense fallback={<TituloCargando />}>
+          <Marca params={params} searchParams={searchParams} />
+        </Suspense>
+      </main>
+    </TransicionPagina>
   );
 }
 

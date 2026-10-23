@@ -1,13 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useRef, useState, ViewTransition } from "react";
 
 /**
  * Fotos del producto. En el celular se pasan deslizando (scroll con "snap")
  * y los puntitos indican cuál se ve; en la compu, además, miniaturas.
  */
-export function Galeria({ fotos, nombre }: { fotos: string[]; nombre: string }) {
+export function Galeria({ id, fotos, nombre }: { id: string; fotos: string[]; nombre: string }) {
   const [actual, setActual] = useState(0);
   const carrusel = useRef<HTMLDivElement>(null);
 
@@ -39,19 +39,30 @@ export function Galeria({ fotos, nombre }: { fotos: string[]; nombre: string }) 
           role="region"
           tabIndex={0}
         >
-          {fotos.map((foto, i) => (
-            <div key={foto} className="relative aspect-square w-full shrink-0 snap-center">
-              <Image
-                src={foto}
-                alt={fotos.length > 1 ? `${nombre}, foto ${i + 1} de ${fotos.length}` : nombre}
-                fill
-                // La primera es la imagen principal de la página: se pide enseguida.
-                preload={i === 0}
-                sizes="(min-width: 1152px) 560px, (min-width: 768px) 50vw, 100vw"
-                className="object-cover"
-              />
-            </div>
-          ))}
+          {fotos.map((foto, i) => {
+            const diapositiva = (
+              <div key={foto} className="relative aspect-square w-full shrink-0 snap-center">
+                <Image
+                  src={foto}
+                  alt={fotos.length > 1 ? `${nombre}, foto ${i + 1} de ${fotos.length}` : nombre}
+                  fill
+                  // La primera es la imagen principal de la página: se pide enseguida.
+                  preload={i === 0}
+                  sizes="(min-width: 1152px) 560px, (min-width: 768px) 50vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+            );
+            // La primera foto tiene el mismo name que la foto de la tarjeta: al
+            // entrar desde la grilla, la tarjeta "viaja" hasta acá.
+            return i === 0 ? (
+              <ViewTransition key={foto} name={`foto-${id}`} share="morph" default="none">
+                {diapositiva}
+              </ViewTransition>
+            ) : (
+              diapositiva
+            );
+          })}
         </div>
 
         {fotos.length > 1 && (

@@ -8,6 +8,7 @@ import { esUuid } from "@/lib/carrito";
 import { formatearPrecio } from "@/lib/formato";
 import { createServiceClient } from "@/lib/supabase/service";
 import { AccionesPago } from "./acciones-pago";
+import { TransicionPagina } from "@/components/tienda/transicion-pagina";
 
 export const metadata: Metadata = {
   title: "Tu pedido",
@@ -47,11 +48,13 @@ const colores: Record<EstadoVisible, string> = {
 // un UUID imposible de adivinar, así que solo lo ve quien hizo la compra.
 export default function PedidoPage({ params, searchParams }: PageProps<"/pedido/[id]">) {
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 py-12">
-      <Suspense fallback={<div className="h-80 animate-pulse rounded-lg bg-neutral-100" />}>
-        <Pedido params={params} searchParams={searchParams} />
-      </Suspense>
-    </main>
+    <TransicionPagina>
+      <main className="mx-auto w-full max-w-2xl px-4 py-12">
+        <Suspense fallback={<div className="h-80 animate-pulse rounded-lg bg-neutral-100" />}>
+          <Pedido params={params} searchParams={searchParams} />
+        </Suspense>
+      </main>
+    </TransicionPagina>
   );
 }
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cantidadTotal, leerCarrito } from "@/lib/carrito";
+import { ContadorCarrito } from "./contador-carrito";
 import { IconoBolsa } from "./iconos";
 
 const clases =
@@ -15,14 +16,7 @@ export async function CarritoLink() {
 
   return (
     <Link href="/carrito" className={clases}>
-      <IconoBolsa className="size-6" />
-      <span className="sr-only md:not-sr-only">Carrito</span>
-      {cantidad > 0 && (
-        <span className="absolute top-0.5 left-6 flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-900 px-1 text-xs text-white md:static">
-          {cantidad}
-          <span className="sr-only">{cantidad === 1 ? " producto" : " productos"}</span>
-        </span>
-      )}
+      <ContadorCarrito cantidad={cantidad} />
     </Link>
   );
 }
