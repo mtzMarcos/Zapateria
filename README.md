@@ -7,8 +7,8 @@ Next.js 16 + Supabase + Mercado Pago (Checkout Pro), deploy en Vercel.
 1. Instalar dependencias: `npm install`
 2. Copiar `.env.example` como `.env.local` y completar las claves de Supabase.
 3. Base de datos: en Supabase → **SQL Editor**, pegar y ejecutar, en orden y una sola vez, cada archivo de
-   `supabase/migrations/` (`20261013000000_esquema_inicial.sql`, `20261022000000_pagos.sql` y
-   `20261023000000_cancelar_pedido.sql`).
+   `supabase/migrations/` (`20261013000000_esquema_inicial.sql`, `20261022000000_pagos.sql`,
+   `20261023000000_cancelar_pedido.sql` y `20261024000000_arrepentimiento.sql`).
 4. Levantar el servidor: `npm run dev` y abrir http://localhost:3000
 5. Crear el usuario administrador (ver abajo) y entrar a http://localhost:3000/admin
 
@@ -60,6 +60,41 @@ Checkout Pro: el comprador paga en la página de Mercado Pago. Variables en `.en
 - Para probar pagos: ingresar a Mercado Pago con una **cuenta de prueba compradora** (no la vendedora) y usar
   las tarjetas de prueba de la documentación (titular `APRO` = aprobado, `OTHE` = rechazado).
 
+## Datos de la tienda y legales
+
+Los datos del negocio están en `src/config/tienda.ts`: dirección y horarios del local, contacto, titular, CUIT,
+domicilio legal, jurisdicción, link del QR de Data fiscal (ARCA), plazo de entrega y política de cambios.
+Los que todavía no se cargaron están marcados con `completar("…")`: en la tienda se ven resaltados como
+"[Completar: …]" y el panel muestra la lista de lo que falta. Para cargar uno, reemplazar `completar("…")`
+por el texto entre comillas.
+
+Páginas legales (texto base: conviene que las revise un abogado o el contador antes de lanzar):
+
+- `/terminos`, `/cambios-y-devoluciones` y `/privacidad` (Ley 25.326, con los textos obligatorios).
+- `/arrepentimiento`: **Botón de arrepentimiento** (Res. SCI 424/2020). El comprador pone el número de pedido y
+  el email de la compra, y recibe al instante un código de solicitud (`ARR-1032-XXXX`). El pedido queda marcado en
+  el panel (aviso arriba del listado y en el detalle) y, si ya estaba entregado, se puede cancelar reponiendo el
+  stock. El dinero se devuelve desde Mercado Pago.
+- En el pie de todas las páginas: links legales, botón de arrepentimiento, link a Defensa del Consumidor
+  (Res. SCI 274/2021), titular y CUIT, y el QR de Data fiscal.
+
+## SEO
+
+- `src/app/sitemap.ts` y `src/app/robots.ts` generan `/sitemap.xml` y `/robots.txt` con `NEXT_PUBLIC_SITE_URL`.
+  El panel, el carrito, el checkout y las páginas de pedidos no se indexan.
+- `src/app/opengraph-image.tsx`: imagen al compartir un link de la tienda. Las páginas de producto usan la
+  foto del producto, tienen URL canónica y datos estructurados (schema.org `Product`: precio, stock, marca).
+- Después de lanzar: dar de alta el sitio en Google Search Console y enviar el sitemap.
+
+## Dominio propio
+
+1. Registrar el dominio (los `.com.ar` en https://nic.ar, con la clave fiscal del titular).
+2. Vercel → proyecto → **Settings → Domains** → agregar el dominio y cargar en el proveedor del dominio los
+   registros DNS que indica Vercel (en NIC.ar: "Delegar" a los servidores DNS de Vercel o de otro proveedor).
+3. Vercel → **Environment Variables**: `NEXT_PUBLIC_SITE_URL=https://dominio` y hacer **Redeploy** (se usa al
+   compilar).
+4. Mercado Pago → Webhooks: cambiar la URL a `https://dominio/api/mercadopago/webhook`.
+
 ## Estructura
 
 ```
@@ -70,7 +105,7 @@ src/
   proxy.ts             Renueva la sesión y protege /admin
   components/admin/    Botones, mensajes y estilos del panel
   components/tienda/   Tarjetas y grilla de productos
-  config/tienda.ts     Nombre y datos generales de la tienda
+  config/tienda.ts     Nombre, contacto y datos legales de la tienda (los que faltan, marcados)
   lib/catalogo.ts      Consultas del catálogo (cacheadas con la etiqueta "catalogo")
   lib/filtros.ts       Filtros y orden del catálogo
   lib/admin/           Verificación de admin (auth.ts), estados de pedidos y opciones del panel
@@ -86,6 +121,7 @@ src/
     browser.ts         Cliente del navegador (subida de fotos)
     env.ts             Variables de entorno y URL pública de las fotos
   lib/formato.ts       Formato de precios en pesos
+  lib/sitio.ts         URL pública de la tienda (NEXT_PUBLIC_SITE_URL)
 supabase/migrations/   Esquema de la base de datos (SQL)
 scripts/               Datos de ejemplo (cargar / borrar)
 ```
@@ -98,6 +134,7 @@ scripts/               Datos de ejemplo (cargar / borrar)
 - `product_images`: fotos (archivos en el bucket `product-images` de Storage).
 - `shipping_zones`: zonas de envío con costo fijo (los precios actuales son de ejemplo).
 - `orders`, `order_items`: pedidos. Los ítems guardan nombre, talle y precio al momento de la compra.
+  Las columnas `withdrawal_*` guardan el pedido de arrepentimiento (código, fecha y comentario).
 - `admins`: usuarios que pueden entrar al panel.
 
 Seguridad: todas las tablas tienen RLS. El público solo puede leer el catálogo

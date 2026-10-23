@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { tienda } from "@/config/tienda";
+import { Dato } from "@/components/tienda/dato";
 import { esUuid } from "@/lib/carrito";
 import { formatearPrecio } from "@/lib/formato";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -187,9 +188,9 @@ async function Pedido({
           </p>
         ) : (
           <p>
-            {tienda.retiro.direccion}
+            <Dato valor={tienda.retiro.direccion} />
             <br />
-            {tienda.retiro.horarios}
+            <Dato valor={tienda.retiro.horarios} />
           </p>
         )}
       </section>

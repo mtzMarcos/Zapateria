@@ -57,8 +57,12 @@ export async function cancelarPedido(
   const { supabase } = await requireAdmin();
   if (!esUuid(pedidoId)) return { error: "Pedido inválido." };
 
-  const { data: pedido } = await supabase.from("orders").select("status").eq("id", pedidoId).maybeSingle();
-  if (!pedido || !esEstado(pedido.status) || !cancelable(pedido.status)) {
+  const { data: pedido } = await supabase
+    .from("orders")
+    .select("status, withdrawal_code")
+    .eq("id", pedidoId)
+    .maybeSingle();
+  if (!pedido || !esEstado(pedido.status) || !cancelable(pedido.status, pedido.withdrawal_code !== null)) {
     return { error: "Este pedido no se puede cancelar." };
   }
   const reponer = formData.get("reponer") === "on" && conStockDescontado.includes(pedido.status);

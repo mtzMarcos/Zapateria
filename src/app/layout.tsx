@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { tienda } from "@/config/tienda";
+import { urlSitio } from "@/lib/sitio";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,8 +15,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Base de las URLs absolutas (imágenes para compartir, canonical).
+  metadataBase: new URL(urlSitio()),
   title: { default: tienda.nombre, template: `%s · ${tienda.nombre}` },
   description: tienda.descripcion,
+  openGraph: {
+    siteName: tienda.nombre,
+    locale: "es_AR",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

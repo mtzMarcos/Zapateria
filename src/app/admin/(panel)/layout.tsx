@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { tienda } from "@/config/tienda";
+import { datosFaltantes, tienda } from "@/config/tienda";
 import { cerrarSesion } from "../login/actions";
 
 const secciones = [
@@ -13,6 +13,8 @@ const secciones = [
 // El layout no lee la sesión: así se muestra al instante. Cada página
 // verifica que el usuario sea admin (con requireAdmin) detrás del loading.
 export default function PanelLayout({ children }: LayoutProps<"/admin">) {
+  const faltantes = datosFaltantes();
+
   return (
     <>
       <header className="border-b border-neutral-200 bg-white">
@@ -39,7 +41,24 @@ export default function PanelLayout({ children }: LayoutProps<"/admin">) {
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+        {faltantes.length > 0 && (
+          <details className="mb-6 rounded-lg border border-dashed border-red-300 bg-red-50 p-4 text-sm text-red-700">
+            <summary className="cursor-pointer font-medium">
+              Faltan {faltantes.length} datos de la tienda antes de lanzar
+            </summary>
+            <p className="mt-2">
+              Se ven en la tienda como “[Completar: …]”. Se cargan en <code>src/config/tienda.ts</code>:
+            </p>
+            <ul className="mt-1 list-disc pl-5">
+              {faltantes.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+          </details>
+        )}
+        {children}
+      </main>
     </>
   );
 }

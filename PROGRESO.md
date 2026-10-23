@@ -63,7 +63,7 @@ Rutina entre PCs: `git pull` antes de empezar, `git push` al terminar.
 | 4 | Carrito y checkout (envío por zona o retiro en local) | ✅ Probado en el navegador |
 | 5 | Mercado Pago Checkout Pro, webhook y descuento de stock | ✅ Probado (en la PC y en Vercel con vuelta automática). Webhook: 401 en Prueba, se verifica al lanzar |
 | 6 | Pedidos en el panel | ✅ Probado (también a mano en el navegador) |
-| 7 | Legales, SEO, dominio y lanzamiento | — |
+| 7 | Legales, SEO, dominio y lanzamiento | En curso: código hecho, faltan datos del cliente, dominio y lanzamiento |
 
 ## Decisiones tomadas
 
@@ -231,6 +231,54 @@ bajó de 8 a 7. Un aviso al webhook sin firma es rechazado (401), así que la cl
 pago real del cliente, ver Pendientes.
 Los pagos se confirman igual con la vuelta del comprador.
 
+## Qué se hizo (Etapa 7, en curso)
+
+- **Datos del cliente con espacios marcados** (`src/config/tienda.ts`): local, contacto, titular, CUIT, domicilio
+  legal, jurisdicción, Data fiscal, plazo de entrega y política de cambios. Los que faltan se ven en la tienda como
+  "[Completar: …]" (resaltados) y el panel muestra la lista arriba de cada pantalla.
+- **Páginas legales:** Términos y condiciones, Cambios y devoluciones, Privacidad (Ley 25.326 con los textos
+  obligatorios). **Son un texto base: que las revise un abogado o el contador del cliente antes de lanzar.**
+- **Botón de arrepentimiento** (`/arrepentimiento`, Res. SCI 424/2020): número de pedido + email, sin cuenta;
+  devuelve al instante un código de solicitud (`ARR-1032-XXXX`). El mismo pedido repetido devuelve el mismo código;
+  si el número o el email no coinciden, no dice cuál de los dos falla. En el panel: aviso arriba del listado con los
+  pedidos con arrepentimiento sin cancelar (aunque estén entregados), aviso en el detalle, y un pedido entregado con
+  arrepentimiento ahora se puede cancelar reponiendo el stock. Migración
+  `supabase/migrations/20261024000000_arrepentimiento.sql` (columnas `withdrawal_*` y nueva versión de
+  `cancelar_pedido`). Como todavía no hay mails, el código solo se muestra en pantalla.
+- **Pie de página:** contacto, local, links legales, botón de arrepentimiento, link a Defensa del Consumidor
+  (Res. SCI 274/2021), titular, CUIT y QR de Data fiscal.
+- Checkout: "Al confirmar aceptás los Términos y condiciones y la política de cambios".
+- **SEO:** `sitemap.xml`, `robots.txt` (no indexa panel, carrito, checkout ni pedidos), imagen para compartir,
+  URL canónica y datos estructurados de producto (precio, stock, marca). `metadataBase` con `NEXT_PUBLIC_SITE_URL`
+  (ahora en `src/lib/sitio.ts`).
+- Pasos del dominio propio en el README.
+
+Probado (2026-10-23, servidor de producción aparte): build, tipos y lint; las páginas nuevas, `sitemap.xml`,
+`robots.txt`, imagen para compartir, canonical y datos estructurados; capturas del pie, términos y arrepentimiento en
+modo claro y oscuro.
+Migración del arrepentimiento corrida el 2026-10-23. Botón de arrepentimiento y panel probados (24 comprobaciones):
+validaciones, número o email que no coinciden (mismo mensaje), código `ARR-…` guardado con fecha y comentario, mismo
+código si se repite, la clave pública no lee pedidos, aviso arriba del listado aunque esté entregado, aviso en el
+detalle (comentario escapado), cancelar un entregado con arrepentimiento reponiendo el stock, y un entregado sin
+arrepentimiento sigue sin poder cancelarse. También en Edge con JavaScript (error, datos conservados, confirmación
+con código en modo claro y oscuro). Siguen pasando las pruebas de carrito (29), pago (18) y panel (27).
+Nota para las pruebas: las páginas son estáticas (cacheComponents), así que si se envía un formulario sin JavaScript
+la respuesta trae el resultado como datos de React, no como HTML ya armado. Con JavaScript (cualquier navegador) se ve normal.
+
+### Lista para el lanzamiento
+
+1. Cargar en `src/config/tienda.ts` todos los datos marcados (el panel muestra cuáles faltan).
+2. Que el abogado o contador revise las páginas legales.
+3. Cargar los productos reales y correr `npm run ejemplo:borrar`.
+4. Precios reales de las zonas de envío (panel → Envíos).
+5. Dominio propio (ver README) y `NEXT_PUBLIC_SITE_URL` con el dominio.
+6. Mercado Pago del cliente: Access Token de producción en Vercel, webhook nuevo (URL con el dominio, evento Pagos) y
+   su clave secreta en `MERCADOPAGO_WEBHOOK_SECRET`. Redeploy.
+7. Primer pago real chico: que vuelva solo a la tienda, que descuente el stock y que el webhook dé 200 (ver Pendientes).
+   Devolverlo desde Mercado Pago y cancelar el pedido en el panel reponiendo el stock.
+8. Google Search Console: dar de alta el dominio y enviar `https://dominio/sitemap.xml`.
+9. Logo y favicon del cliente (`src/app/favicon.ico`; imagen para compartir en `src/app/opengraph-image.tsx`).
+
 ## Datos de ejemplo (2026-10-21)
 
 `scripts/datos-ejemplo.mjs`, con `npm run ejemplo:cargar` y `npm run ejemplo:borrar` (detalle en el README).
@@ -250,4 +298,7 @@ cargar, borrar y cargar de nuevo. Jordan Air (el producto cargado a mano) no se 
 
 ## Pendiente con el cliente
 
-Marcas y categorías, sistema de talles, fotos, precios de envío por zona, dirección y horarios del local, política de cambios, datos fiscales y acceso a su cuenta de Mercado Pago.
+Marcas y categorías, sistema de talles, fotos, precios de envío por zona, acceso a su cuenta de Mercado Pago, logo,
+dominio, y los datos de `src/config/tienda.ts`: dirección y horarios del local, email, WhatsApp e Instagram, razón
+social o titular, CUIT, domicilio legal, ciudad para la jurisdicción, QR de Data fiscal (ARCA), plazo de entrega,
+plazo para cambios y quién paga el envío de un cambio.

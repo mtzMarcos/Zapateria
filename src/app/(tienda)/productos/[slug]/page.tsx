@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { obtenerCatalogo, obtenerProducto } from "@/lib/catalogo";
+import { obtenerCatalogo, obtenerProducto, type ProductoDetalle } from "@/lib/catalogo";
 import { filtrarProductos } from "@/lib/filtros";
 import { formatearPrecio } from "@/lib/formato";
+import { urlSitio } from "@/lib/sitio";
 import { GrillaProductos } from "@/components/tienda/producto-card";
 import { Galeria } from "./galeria";
 import { SelectorTalle } from "./selector-talle";
@@ -20,6 +21,7 @@ export async function generateMetadata({
   return {
     title: producto.name,
     description: descripcion,
+    alternates: { canonical: `/productos/${producto.slug}` },
     openGraph: {
       title: producto.name,
       description: descripcion,
@@ -56,6 +58,11 @@ async function Ficha({ params }: Pick<PageProps<"/productos/[slug]">, "params">)
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        // El JSON se escapa (< → <) para que un texto del producto no pueda cerrar el <script>.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(datosEstructurados(producto)).replace(/</g, "\\u003c") }}
+      />
       <nav className="mb-6 text-sm text-neutral-500">
         <Link href="/productos" className="hover:text-neutral-900">
           Productos
@@ -109,6 +116,30 @@ async function Ficha({ params }: Pick<PageProps<"/productos/[slug]">, "params">)
       )}
     </>
   );
+}
+
+/** Datos del producto para Google (schema.org/Product): precio, stock, marca y fotos. */
+function datosEstructurados(producto: ProductoDetalle) {
+  const url = `${urlSitio()}/productos/${producto.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: producto.name,
+    description: producto.description || undefined,
+    image: producto.fotos.length > 0 ? producto.fotos : undefined,
+    url,
+    brand: producto.marca ? { "@type": "Brand", name: producto.marca.name } : undefined,
+    category: producto.categoria?.name,
+    offers: {
+      "@type": "Offer",
+      url,
+      price: producto.price,
+      priceCurrency: "ARS",
+      itemCondition: "https://schema.org/NewCondition",
+      availability:
+        producto.stockTotal > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    },
+  };
 }
 
 function FichaCargando() {

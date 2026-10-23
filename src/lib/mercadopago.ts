@@ -1,5 +1,6 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { urlSitio } from "@/lib/sitio";
 
 // Integración con Mercado Pago Checkout Pro usando su API REST.
 // El comprador paga en la página de Mercado Pago; acá solo se crea la
@@ -14,11 +15,6 @@ function accessToken() {
   const token = process.env.MERCADOPAGO_ACCESS_TOKEN;
   if (!token) throw new Error("Falta MERCADOPAGO_ACCESS_TOKEN en .env.local");
   return token;
-}
-
-/** URL pública de la tienda, sin barra final. */
-export function urlSitio() {
-  return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 }
 
 /**

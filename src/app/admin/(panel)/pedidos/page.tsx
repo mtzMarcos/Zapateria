@@ -17,6 +17,7 @@ type FilaPedido = {
   shipping_zone_name: string | null;
   total: number;
   admin_notes: string;
+  withdrawal_code: string | null;
 };
 
 export default async function PedidosPage({ searchParams }: PageProps<"/admin/pedidos">) {
@@ -33,7 +34,7 @@ export default async function PedidosPage({ searchParams }: PageProps<"/admin/pe
   let consulta = supabase
     .from("orders")
     .select(
-      "id, order_number, status, created_at, customer_name, customer_email, delivery_method, shipping_zone_name, total, admin_notes",
+      "id, order_number, status, created_at, customer_name, customer_email, delivery_method, shipping_zone_name, total, admin_notes, withdrawal_code",
     )
     .order("created_at", { ascending: false })
     .limit(LIMITE);
@@ -45,10 +46,18 @@ export default async function PedidosPage({ searchParams }: PageProps<"/admin/pe
     consulta = consulta.in("status", [...filtro.estados]);
   }
 
-  // Cantidad de pedidos por estado, para los números de los filtros.
-  const [{ data, error }, { data: todos }] = await Promise.all([
+  // Cantidad de pedidos por estado, para los números de los filtros. Aparte, los
+  // pedidos con arrepentimiento sin cancelar: suelen estar entregados, así que no
+  // aparecen en "Para atender" y se avisan arriba de todo.
+  const [{ data, error }, { data: todos }, { data: arrepentidos }] = await Promise.all([
     consulta,
     supabase.from("orders").select("status"),
+    supabase
+      .from("orders")
+      .select("id, order_number")
+      .not("withdrawal_code", "is", null)
+      .neq("status", "cancelled")
+      .order("withdrawal_requested_at"),
   ]);
   if (error) throw error;
   const pedidos = data as FilaPedido[];
@@ -60,6 +69,21 @@ export default async function PedidosPage({ searchParams }: PageProps<"/admin/pe
   return (
     <>
       <h1 className="mb-6 text-2xl font-bold">Pedidos</h1>
+
+      {arrepentidos && arrepentidos.length > 0 && (
+        <p role="alert" className="mb-6 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700">
+          <strong>Botón de arrepentimiento:</strong> pidieron revocar la compra en{" "}
+          {arrepentidos.map((p, i) => (
+            <span key={p.id}>
+              {i > 0 && ", "}
+              <Link href={`/admin/pedidos/${p.id}`} className="font-medium underline">
+                #{p.order_number}
+              </Link>
+            </span>
+          ))}
+          . Se deja de avisar cuando el pedido se cancela.
+        </p>
+      )}
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <nav className="flex flex-wrap gap-2 text-sm">
@@ -143,6 +167,9 @@ export default async function PedidosPage({ searchParams }: PageProps<"/admin/pe
                     <td className="p-3 text-right">{formatearPrecio(Number(p.total))}</td>
                     <td className="p-3">
                       <span className={`font-medium ${estado?.color ?? ""}`}>{estado?.nombre ?? p.status}</span>
+                      {p.withdrawal_code && (
+                        <span className="block text-xs font-medium text-red-700">Pidió arrepentimiento</span>
+                      )}
                       {p.admin_notes && (
                         <span className="block text-xs text-neutral-500" title={p.admin_notes}>
                           Tiene notas

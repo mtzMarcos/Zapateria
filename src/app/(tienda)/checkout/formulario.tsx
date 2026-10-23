@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import type { ZonaEnvio } from "@/lib/envios";
 import { formatearPrecio } from "@/lib/formato";
@@ -160,6 +161,17 @@ export function FormularioCheckout({
       </button>
       <p className="-mt-4 text-center text-sm text-neutral-500">
         Pagás en Mercado Pago con tarjeta, dinero en cuenta u otros medios.
+      </p>
+      <p className="-mt-6 text-center text-sm text-neutral-500">
+        Al confirmar aceptás los{" "}
+        <Link href="/terminos" target="_blank" className="underline hover:text-neutral-900">
+          Términos y condiciones
+        </Link>{" "}
+        y la{" "}
+        <Link href="/cambios-y-devoluciones" target="_blank" className="underline hover:text-neutral-900">
+          política de cambios
+        </Link>
+        .
       </p>
     </form>
   );

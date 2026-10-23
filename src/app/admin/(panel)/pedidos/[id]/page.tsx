@@ -38,6 +38,9 @@ type Pedido = {
   mp_payment_id: string | null;
   paid_at: string | null;
   admin_notes: string;
+  withdrawal_code: string | null;
+  withdrawal_requested_at: string | null;
+  withdrawal_reason: string | null;
   order_items: {
     id: string;
     product_id: string | null;
@@ -65,6 +68,7 @@ export default async function PedidoPage({ params }: PageProps<"/admin/pedidos/[
   if (!esEstado(pedido.status)) throw new Error(`Estado desconocido: ${pedido.status}`);
   const estado = pedido.status;
   const conEnvio = pedido.delivery_method === "shipping";
+  const conArrepentimiento = pedido.withdrawal_code !== null;
   const siguientes = siguientesEstados(estado, conEnvio).map((e) => ({
     estado: e,
     texto: acciones[e] ?? estados[e].nombre,
@@ -85,6 +89,23 @@ export default async function PedidoPage({ params }: PageProps<"/admin/pedidos/[
         </p>
       </div>
 
+      {pedido.withdrawal_code && pedido.withdrawal_requested_at && (
+        <Aviso>
+          <strong>El cliente pidió revocar la compra</strong> con el botón de arrepentimiento el{" "}
+          {fechaHora(pedido.withdrawal_requested_at)} (código{" "}
+          <span className="font-mono">{pedido.withdrawal_code}</span>).
+          {pedido.withdrawal_reason && <> Comentario: “{pedido.withdrawal_reason}”.</>}
+          {estado !== "cancelled" && (
+            <>
+              <br />
+              Si está dentro de los 10 días corridos desde que lo recibió: coordiná la devolución (el envío corre
+              por cuenta de la tienda), cancelá el pedido reponiendo el stock y devolvé el dinero desde Mercado
+              Pago.
+            </>
+          )}
+        </Aviso>
+      )}
+
       {estado === "stock_issue" && (
         <Aviso>
           El cliente pagó, pero al confirmar el pago no había stock suficiente y no se descontó nada.
@@ -92,12 +113,12 @@ export default async function PedidoPage({ params }: PageProps<"/admin/pedidos/[
         </Aviso>
       )}
 
-      {(siguientes.length > 0 || cancelable(estado)) && (
+      {(siguientes.length > 0 || cancelable(estado, conArrepentimiento)) && (
         <Seccion titulo="Estado">
           {siguientes.length > 0 && (
             <CambiarEstado pedidoId={pedido.id} desde={estado} siguientes={siguientes} />
           )}
-          {cancelable(estado) && (
+          {cancelable(estado, conArrepentimiento) && (
             <CancelarPedido
               pedidoId={pedido.id}
               puedeReponer={conStockDescontado.includes(estado)}

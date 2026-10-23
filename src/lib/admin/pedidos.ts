@@ -20,7 +20,7 @@ export function esEstado(valor: string): valor is Estado {
 }
 
 /** Estados en los que ya se descontó stock (al cancelar se puede reponer). */
-export const conStockDescontado: Estado[] = ["paid", "preparing", "shipped", "ready_for_pickup"];
+export const conStockDescontado: Estado[] = ["paid", "preparing", "shipped", "ready_for_pickup", "delivered"];
 
 /**
  * Pasos siguientes posibles desde cada estado (sin contar "cancelar", que se
@@ -52,7 +52,12 @@ export const acciones: Partial<Record<Estado, string>> = {
   delivered: "Marcar entregado",
 };
 
-export const cancelable = (estado: Estado) => estado !== "delivered" && estado !== "cancelled";
+/**
+ * Un pedido entregado solo se puede cancelar si el cliente usó el botón de
+ * arrepentimiento (devuelve el producto). Igual que en la función SQL cancelar_pedido.
+ */
+export const cancelable = (estado: Estado, conArrepentimiento = false) =>
+  estado !== "cancelled" && (estado !== "delivered" || conArrepentimiento);
 
 /** Filtros del listado. El primero es el que se ve al entrar. */
 export const filtros = [
