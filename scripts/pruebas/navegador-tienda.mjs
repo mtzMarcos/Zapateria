@@ -97,10 +97,6 @@ try {
   check(aMitad > 1 && aMitad < 1.05 && alFinal === 1.05, `zoom al pasar el mouse: animado hasta 5 % (${aMitad.toFixed(3)} → ${alFinal})`);
   await nav.cdp("Input.dispatchMouseEvent", { type: "mouseMoved", x: 1, y: 1 });
   await nav.evaluar("window.scrollTo(0, 0)");
-  // Las fotos que se ven al abrir llegan visibles en el HTML; las de más abajo se funden al cargar.
-  await nav.evaluar("window.scrollTo(0, document.body.scrollHeight)");
-  check(await nav.hasta(`document.querySelectorAll("img.foto-suave[data-cargada]").length > 0`, 8000), "las fotos de más abajo aparecen con un fundido al cargar");
-  await nav.evaluar("window.scrollTo(0, 0)");
   // Carrusel de la portada: fundido cruzado.
   const portadas = `[...document.querySelectorAll('[aria-roledescription="diapositiva"]')]`;
   if (await nav.evaluar(`${portadas}.length > 1`)) {
@@ -116,6 +112,25 @@ try {
   const anims = (await nav.evaluar("window.__transiciones[0]")) ?? [];
   check(anims.some((a) => /::view-transition-group\(foto-/.test(a)), "la foto de la tarjeta viaja hasta la del producto");
   check(anims.some((a) => /::view-transition-new\(.*\) 200$/.test(a)), "la página nueva aparece con un fundido corto");
+  nav.cerrar();
+
+  // --- Fundido de las fotos al cargar: se aplica a las que todavía no cargaron cuando
+  // arranca el JavaScript. Para probarlo siempre igual, el navegador retiene las fotos
+  // de productos hasta que la página arrancó y recién ahí las deja cargar.
+  nav = await abrirNavegador({ ancho: 1280 });
+  const retenidas = [];
+  nav.al("Fetch.requestPaused", (p) => retenidas.push(p.requestId));
+  await nav.cdp("Fetch.enable", { patterns: [{ urlPattern: "*/_next/image*", requestStage: "Request" }] });
+  await nav.ir("/productos", 3500);
+  const fotoCard = `document.querySelector("li.subir img")`;
+  check(
+    await nav.evaluar(`${fotoCard}.classList.contains("foto-suave") && !${fotoCard}.hasAttribute("data-cargada") && getComputedStyle(${fotoCard}).opacity === "0"`),
+    "foto que todavía no cargó: espera oculta",
+  );
+  for (const id of retenidas.splice(0)) await nav.cdp("Fetch.continueRequest", { requestId: id });
+  await nav.cdp("Fetch.disable");
+  check(await nav.hasta(`${fotoCard}.hasAttribute("data-cargada")`, 8000), "al cargar, la foto aparece");
+  check(await nav.evaluar(`getComputedStyle(${fotoCard}).transitionDuration.split(",")[0].trim() === "0.4s"`), "con un fundido de 400 ms");
   nav.cerrar();
 
   // --- "Reducir movimiento": sin animaciones

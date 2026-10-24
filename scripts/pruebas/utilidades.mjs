@@ -237,9 +237,11 @@ export async function abrirNavegador({ ancho = 1280, alto = 900, reducir = false
   await new Promise((r) => ws.addEventListener("open", r));
   let id = 0;
   const pendientes = new Map();
+  const oyentes = new Map(); // eventos del navegador (por ejemplo Fetch.requestPaused)
   ws.addEventListener("message", (e) => {
     const m = JSON.parse(e.data);
     if (m.id && pendientes.has(m.id)) pendientes.get(m.id)(m);
+    else if (m.method) for (const fn of oyentes.get(m.method) ?? []) fn(m.params);
   });
   const cdp = (method, params = {}) =>
     new Promise((res) => {
@@ -293,6 +295,10 @@ export async function abrirNavegador({ ancho = 1280, alto = 900, reducir = false
       const { root } = (await cdp("DOM.getDocument", { depth: -1, pierce: true })).result;
       const { nodeIds } = (await cdp("DOM.querySelectorAll", { nodeId: root.nodeId, selector: "input[type=file]" })).result;
       await cdp("DOM.setFileInputFiles", { nodeId: nodeIds[indice], files: [archivo] });
+    },
+    /** Escucha un evento del navegador (DevTools Protocol). */
+    al(evento, fn) {
+      oyentes.set(evento, [...(oyentes.get(evento) ?? []), fn]);
     },
     cerrar() {
       ws.close();
