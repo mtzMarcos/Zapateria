@@ -8,8 +8,29 @@ Tienda online (prueba): https://zapateria-mu.vercel.app (Vercel, se publica sola
 
 ### Dónde quedamos (2026-10-24)
 
-Todo está en `main` y subido a GitHub; todas las pruebas pasan (8 pruebas, 192 comprobaciones). El código está
+Todo está en `main` y subido a GitHub; todas las pruebas pasan (8 pruebas, 225 comprobaciones). El código está
 listo; lo que falta depende del cliente o del lanzamiento.
+
+**Carpeta de trabajo:** `C:\proyectos\zapateria`. La carpeta `C:\proyectos\sergio-zapateria` es una copia vieja
+(Etapa 1): no usarla; se puede borrar.
+
+**Navegación (rama `navegacion`, pasada a `main` el 2026-10-24):**
+- Subcategorías de un solo nivel (p. ej. Zapatillas → Running). Un producto va en la categoría madre o en una
+  subcategoría; al filtrar por la madre aparecen también los de sus subcategorías. La base impide dos niveles, que una
+  categoría sea madre de sí misma y borrar una categoría con subcategorías.
+- Panel → Categorías: elegir la categoría madre y ordenar con flechas ↑↓. En el formulario del producto las
+  subcategorías aparecen agrupadas bajo su madre.
+- Menú de la tienda: desplegable por sección con "Ver todo" y una columna por categoría con sus subcategorías
+  (también en el menú del celular). Columna de filtros con la subcategoría marcada dentro de su madre.
+- Tarjetas del inicio: Tendencias, Deportes y Outlet, editables desde Panel → Portada (título, subtítulo, foto,
+  visible). Sin foto muestran "[Completar: foto]"; ocultas o de una sección sin productos no aparecen.
+- Ficha del producto: ruta Madre / Subcategoría y "También te puede interesar" primero de la subcategoría y después
+  de la madre.
+- Migración `20261028000000_navegacion.sql` **ya corrida en Supabase** (2026-10-24) y verificada: `parent_id`,
+  tabla `home_cards` con sus 3 tarjetas, reglas y permisos. Si se corre de nuevo da "column parent_id ... already
+  exists": es normal, no hay que volver a correrla.
+- Datos de ejemplo recargados (`npm run ejemplo:cargar`) con las subcategorías Urbanas, Running, Skate, Training y
+  Básquet (las dos últimas sin productos).
 
 **Lo que se hizo el 2026-10-23/24:**
 - Diseño para celular, inicio estilo tienda grande, animaciones, pruebas automáticas, pulido visual (detalle abajo).
@@ -22,19 +43,19 @@ listo; lo que falta depende del cliente o del lanzamiento.
   (ya no depende de la velocidad de carga).
 
 **Pendiente:**
-1. Rama `degradado-portada`: ya está entera en `main`; se puede borrar (local y en GitHub).
-2. Opcional: borrar las columnas de color sin uso de `home_slides` (ver la migración 20261027000000).
-3. Del cliente: todos los datos de `src/config/tienda.ts` (el panel muestra cuáles faltan), guía de talles, fotos de
-   portada reales y logos de marcas que esté autorizado a usar, precios de envío, productos reales (después
+1. Opcional: borrar las columnas de color sin uso de `home_slides` (ver la migración 20261027000000).
+2. Del cliente: todos los datos de `src/config/tienda.ts` (el panel muestra cuáles faltan), guía de talles, fotos de
+   portada reales y logos de marcas que esté autorizado a usar, **las 3 fotos de las tarjetas del inicio (verticales,
+   900×1200) y cómo quiere sus categorías y subcategorías**, precios de envío, productos reales (después
    `npm run ejemplo:borrar`), logo y favicon, revisión legal de las páginas, dominio.
-4. Lanzamiento: ver "Lista para el lanzamiento" más abajo (dominio, Mercado Pago del cliente, primer pago real para
+3. Lanzamiento: ver "Lista para el lanzamiento" más abajo (dominio, Mercado Pago del cliente, primer pago real para
    verificar el webhook, mails con el dominio, Search Console).
 
-**Pruebas automáticas:** `npm run build` y `npm run pruebas` (detalle en el README). 8 pruebas, 192 comprobaciones:
+**Pruebas automáticas:** `npm run build` y `npm run pruebas` (detalle en el README). 8 pruebas, 225 comprobaciones:
 funciones SQL, carrito y checkout, pago, panel de pedidos, arrepentimiento, tienda, y dos en el navegador (tienda y
 panel). Viven en `scripts/pruebas/`.
 
-**Rama `degradado-portada` (pasada a `main` el 2026-10-24):** fundido de la portada con la página (ver arriba).
+**Rama `degradado-portada` (pasada a `main` el 2026-10-24, borrada):** fundido de la portada con la página (ver arriba).
 
 **Rama `pulido-visual` (pasada a `main` el 2026-10-23, revisada en la vista previa):**
 
