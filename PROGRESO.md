@@ -1,15 +1,40 @@
 # Progreso del proyecto
 
-Última actualización: 2026-10-23
+Última actualización: 2026-10-24
 
 ## Etapa actual: 7 (legales, SEO, dominio y lanzamiento), en curso
 
 Tienda online (prueba): https://zapateria-mu.vercel.app (Vercel, se publica sola con cada push a `main`).
 
-**Pruebas automáticas** (2026-10-23): `npm run build` y `npm run pruebas` (detalle en el README). 8 pruebas, 180
-comprobaciones: funciones SQL, carrito y checkout, pago, panel de pedidos, arrepentimiento, tienda, y dos en el
-navegador (tienda y panel). Viven en `scripts/pruebas/` (antes estaban en una carpeta temporal y se perdieron).
-Todas pasaron contra `mejoras-celular` antes de pasarla a `main`.
+### Dónde quedamos (2026-10-24)
+
+Todo está en `main` y subido a GitHub; todas las pruebas pasan (8 pruebas, 192 comprobaciones). El código está
+listo; lo que falta depende del cliente o del lanzamiento.
+
+**Lo que se hizo el 2026-10-23/24:**
+- Diseño para celular, inicio estilo tienda grande, animaciones, pruebas automáticas, pulido visual (detalle abajo).
+- Portada: la parte de abajo de cada foto se funde con el fondo de la página (40 % de abajo, 11 pasos con curva
+  smoothstep, clases `fundido-portada` y `velo-portada` en `globals.css`). Igual en todas las portadas y en modo
+  claro y oscuro. Antes se probó un degradado con el color de cada foto y se descartó: las columnas `image_color` y
+  `mobile_image_color` de `home_slides` (migración `20261027000000_color_portadas.sql`, ya corrida) quedaron **sin
+  uso**; se pueden borrar con el comando que figura en esa migración.
+- Pruebas: el fundido de carga de las fotos se prueba reteniendo las imágenes hasta que arranca el JavaScript
+  (ya no depende de la velocidad de carga).
+
+**Pendiente:**
+1. Rama `degradado-portada`: ya está entera en `main`; se puede borrar (local y en GitHub).
+2. Opcional: borrar las columnas de color sin uso de `home_slides` (ver la migración 20261027000000).
+3. Del cliente: todos los datos de `src/config/tienda.ts` (el panel muestra cuáles faltan), guía de talles, fotos de
+   portada reales y logos de marcas que esté autorizado a usar, precios de envío, productos reales (después
+   `npm run ejemplo:borrar`), logo y favicon, revisión legal de las páginas, dominio.
+4. Lanzamiento: ver "Lista para el lanzamiento" más abajo (dominio, Mercado Pago del cliente, primer pago real para
+   verificar el webhook, mails con el dominio, Search Console).
+
+**Pruebas automáticas:** `npm run build` y `npm run pruebas` (detalle en el README). 8 pruebas, 192 comprobaciones:
+funciones SQL, carrito y checkout, pago, panel de pedidos, arrepentimiento, tienda, y dos en el navegador (tienda y
+panel). Viven en `scripts/pruebas/`.
+
+**Rama `degradado-portada` (pasada a `main` el 2026-10-24):** fundido de la portada con la página (ver arriba).
 
 **Rama `pulido-visual` (pasada a `main` el 2026-10-23, revisada en la vista previa):**
 
