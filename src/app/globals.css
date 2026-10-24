@@ -178,6 +178,30 @@
   }
 }
 
+/*
+ * Degradado de la portada: la parte de abajo del carrusel se funde con la
+ * página, pasando por el color de la foto (calculado al subirla en el panel).
+ * Cada portada define --c-compu y --c-celular; .color-portada elige el que
+ * corresponde al ancho de pantalla. Registrar --color-portada como <color>
+ * permite que cambie suave (700 ms, como el fundido de las fotos) al pasar de
+ * portada. El final del degradado es el fondo de la página (white se invierte
+ * en modo oscuro), así funciona en los dos modos.
+ */
+@property --color-portada {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #3f3f46;
+}
+.color-portada {
+  --color-portada: var(--c-celular);
+  transition: --color-portada 700ms ease-in-out;
+}
+@media (width >= 40rem) {
+  .color-portada {
+    --color-portada: var(--c-compu);
+  }
+}
+
 /* Esqueletos de carga: un brillo suave que recorre el bloque gris. */
 @keyframes brillo {
   from {

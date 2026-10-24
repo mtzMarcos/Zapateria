@@ -14,7 +14,13 @@ export type Portada = {
   link: string;
   foto: string | null;
   fotoCelular: string | null;
+  /** Colores de la franja de abajo de cada foto (#rrggbb), para el degradado con la página. */
+  color: string;
+  colorCelular: string;
 };
+
+/** Gris de fondo de las portadas sin foto (y si una foto no tiene color guardado). */
+export const COLOR_SIN_FOTO = "#3f3f46";
 
 export type Anuncio = { texto: string; link: string | null };
 
@@ -25,7 +31,7 @@ export async function obtenerPortadas(): Promise<Portada[]> {
 
   const { data, error } = await createPublicClient()
     .from("home_slides")
-    .select("id, title, subtitle, button_text, button_url, image_path, mobile_image_path")
+    .select("id, title, subtitle, button_text, button_url, image_path, mobile_image_path, image_color, mobile_image_color")
     .eq("active", true)
     .order("position")
     .order("created_at");
@@ -39,6 +45,11 @@ export async function obtenerPortadas(): Promise<Portada[]> {
     link: s.button_url,
     foto: s.image_path ? urlFoto(s.image_path) : null,
     fotoCelular: s.mobile_image_path ? urlFoto(s.mobile_image_path) : null,
+    color: (s.image_path && s.image_color) || COLOR_SIN_FOTO,
+    // Sin foto de celular, el celular muestra la de compu: mismo color.
+    colorCelular: s.mobile_image_path
+      ? s.mobile_image_color || COLOR_SIN_FOTO
+      : (s.image_path && s.image_color) || COLOR_SIN_FOTO,
   }));
 }
 

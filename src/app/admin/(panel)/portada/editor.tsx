@@ -25,6 +25,8 @@ export type DatosPortada = {
   active: boolean;
   foto: string | null;
   fotoCelular: string | null;
+  color: string | null;
+  colorCelular: string | null;
 };
 
 // ---------------------------------------------------------------------
@@ -181,6 +183,8 @@ export function EditorPortada({
           etiqueta="Foto para compu"
           ayuda="Horizontal, recomendado 1920×800. El texto va arriba a la izquierda: dejá esa zona despejada."
           claseVista="aspect-[12/5] w-full"
+          conColor
+          color={portada.color}
           guardar={guardarFotoPortada.bind(null, portada.id, "compu")}
         />
         <CampoImagen
@@ -189,6 +193,8 @@ export function EditorPortada({
           etiqueta="Foto para celular (opcional)"
           ayuda="Vertical, 900×1200. Si no hay, se usa la de compu."
           claseVista="aspect-[3/4] w-full"
+          conColor
+          color={portada.colorCelular}
           guardar={guardarFotoPortada.bind(null, portada.id, "celular")}
         />
       </div>

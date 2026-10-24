@@ -9,6 +9,9 @@ import { IconoFlecha, IconoPausa, IconoPlay } from "./iconos";
 
 const INTERVALO = 6000; // ms entre portadas
 
+/** Colores de la portada para el degradado con la página (ver .color-portada en globals.css). */
+const colores = (p: Portada) => ({ "--c-compu": p.color, "--c-celular": p.colorCelular }) as React.CSSProperties;
+
 // Los textos van sobre fotos: usan colores fijos (blanco sobre un velo oscuro)
 // en vez de la paleta, que en modo oscuro se invierte.
 
@@ -52,7 +55,8 @@ export function CarruselPortada({ portadas }: { portadas: Portada[] }) {
     <section
       aria-roledescription="carrusel"
       aria-label="Destacados"
-      className="relative"
+      className="color-portada relative"
+      style={colores(portadas[actual] ?? portadas[0])}
       onMouseEnter={() => setEnUso(true)}
       onMouseLeave={() => setEnUso(false)}
       onFocus={() => setEnUso(true)}
@@ -74,7 +78,7 @@ export function CarruselPortada({ portadas }: { portadas: Portada[] }) {
       }}
     >
       {/* Todas las portadas en la misma celda de la grilla: se ven una encima de otra. */}
-      <div className="grid">
+      <div className="relative grid">
         {portadas.map((p, i) => (
           <Diapositiva
             key={p.id}
@@ -86,59 +90,68 @@ export function CarruselPortada({ portadas }: { portadas: Portada[] }) {
             conFoto={i === 0 || todas}
           />
         ))}
+
+        {varias && (
+          <>
+            <button
+              type="button"
+              onClick={() => irA(actual - 1)}
+              aria-label="Portada anterior"
+              className="absolute top-1/2 left-4 z-10 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-[#fff]/85 text-[#111] shadow hover:bg-[#fff] md:flex"
+            >
+              <IconoFlecha direccion="izquierda" />
+            </button>
+            <button
+              type="button"
+              onClick={() => irA(actual + 1)}
+              aria-label="Portada siguiente"
+              className="absolute top-1/2 right-4 z-10 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-[#fff]/85 text-[#111] shadow hover:bg-[#fff] md:flex"
+            >
+              <IconoFlecha />
+            </button>
+
+            {/* Puntitos y pausa sobre una pastilla oscura: se ven con cualquier color de foto. */}
+            <div className="absolute inset-x-0 bottom-4 z-10 flex justify-center">
+              <div className="flex items-center gap-2 rounded-full bg-[#000]/35 py-1 pr-1 pl-2 backdrop-blur-sm">
+                <div className="flex gap-1">
+                  {portadas.map((p, i) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => irA(i)}
+                      aria-label={`Ver portada ${i + 1}`}
+                      aria-current={i === actual ? "true" : undefined}
+                      className="flex size-6 items-center justify-center"
+                    >
+                      <span
+                        className={`block h-1.5 rounded-full transition-all duration-300 ${
+                          i === actual ? "w-6 bg-[#fff]" : "w-1.5 bg-[#fff]/60"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                {movimiento && (
+                  <button
+                    type="button"
+                    onClick={() => setPausado(!pausado)}
+                    aria-label={pausado ? "Reanudar el carrusel" : "Pausar el carrusel"}
+                    className="flex size-7 items-center justify-center rounded-full text-[#fff] hover:bg-[#fff]/20"
+                  >
+                    {pausado ? <IconoPlay className="size-4" /> : <IconoPausa className="size-4" />}
+                  </button>
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {varias && (
-        <>
-          <button
-            type="button"
-            onClick={() => irA(actual - 1)}
-            aria-label="Portada anterior"
-            className="absolute top-1/2 left-4 z-10 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-[#fff]/85 text-[#111] shadow hover:bg-[#fff] md:flex"
-          >
-            <IconoFlecha direccion="izquierda" />
-          </button>
-          <button
-            type="button"
-            onClick={() => irA(actual + 1)}
-            aria-label="Portada siguiente"
-            className="absolute top-1/2 right-4 z-10 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-[#fff]/85 text-[#111] shadow hover:bg-[#fff] md:flex"
-          >
-            <IconoFlecha />
-          </button>
-
-          <div className="absolute inset-x-0 bottom-4 z-10 flex items-center justify-center gap-3">
-            <div className="flex gap-2">
-              {portadas.map((p, i) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => irA(i)}
-                  aria-label={`Ver portada ${i + 1}`}
-                  aria-current={i === actual ? "true" : undefined}
-                  className="flex size-6 items-center justify-center"
-                >
-                  <span
-                    className={`block h-1.5 rounded-full transition-all duration-300 ${
-                      i === actual ? "w-6 bg-[#fff]" : "w-1.5 bg-[#fff]/60"
-                    }`}
-                  />
-                </button>
-              ))}
-            </div>
-            {movimiento && (
-              <button
-                type="button"
-                onClick={() => setPausado(!pausado)}
-                aria-label={pausado ? "Reanudar el carrusel" : "Pausar el carrusel"}
-                className="flex size-8 items-center justify-center rounded-full bg-[#000]/40 text-[#fff] hover:bg-[#000]/60"
-              >
-                {pausado ? <IconoPlay className="size-4" /> : <IconoPausa className="size-4" />}
-              </button>
-            )}
-          </div>
-        </>
-      )}
+      {/* Banda debajo de la foto: del color de la portada al fondo de la página. */}
+      <div
+        aria-hidden
+        className="h-12 bg-[linear-gradient(to_bottom,var(--color-portada),var(--color-white))] md:h-20"
+      />
     </section>
   );
 }
@@ -179,7 +192,12 @@ function Diapositiva({
         </span>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-[#000]/60 via-[#000]/15 to-transparent md:bg-gradient-to-r md:from-[#000]/55 md:via-[#000]/20" />
-      <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-7xl px-6 pb-16 text-[#fff] md:top-0 md:flex md:flex-col md:justify-center md:px-10 md:pb-0">
+      {/* Abajo, la foto termina en su color: sigue en la banda de debajo sin corte. */}
+      <div
+        className="color-portada absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(to_bottom,transparent,var(--color-portada))] md:h-32"
+        style={colores(portada)}
+      />
+      <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-7xl px-6 pb-20 text-[#fff] md:top-0 md:flex md:flex-col md:justify-center md:px-10 md:pb-0">
         {/* El texto de la portada que se ve aparece suave (sube 12 px y se funde). */}
         <div
           className={`max-w-xl transition-[opacity,translate] duration-500 ease-out ${

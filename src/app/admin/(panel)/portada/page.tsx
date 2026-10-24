@@ -10,7 +10,7 @@ export default async function PortadaPage() {
     supabase.from("site_settings").select("announcement_text, announcement_url, announcement_active").maybeSingle(),
     supabase
       .from("home_slides")
-      .select("id, title, subtitle, button_text, button_url, image_path, mobile_image_path, active")
+      .select("id, title, subtitle, button_text, button_url, image_path, mobile_image_path, image_color, mobile_image_color, active")
       .order("position")
       .order("created_at"),
     supabase.from("brands").select("name, slug").order("name"),
@@ -90,6 +90,8 @@ export default async function PortadaPage() {
                   active: p.active,
                   foto: p.image_path ? urlFoto(p.image_path) : null,
                   fotoCelular: p.mobile_image_path ? urlFoto(p.mobile_image_path) : null,
+                  color: p.image_color,
+                  colorCelular: p.mobile_image_color,
                 }}
               />
             ))}
