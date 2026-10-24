@@ -90,7 +90,11 @@ if (conSub) {
   const listado = (await c.get(`/productos?categoria=${sub.slug}`)).html;
   const columna = listado.slice(listado.indexOf('aria-label="Filtros"'), listado.indexOf("</aside>"));
   check(
-    columna.includes(`categoria=${madre.slug}"`) && columna.includes(`categoria=${sub.slug}" aria-current="true"`),
+    // React escribe aria-current antes que href: se busca el link entero, sin depender del orden.
+    columna.includes(`categoria=${madre.slug}"`) &&
+      [...columna.matchAll(/<a [^>]*>/g)].some(
+        ([a]) => a.includes(`href="/productos?categoria=${sub.slug}"`) && a.includes('aria-current="true"'),
+      ),
     "columna de filtros: la subcategoría elegida, marcada dentro de su categoría",
   );
   const fichaSub = (await c.get(`/productos/${conSub.slug}`)).html;

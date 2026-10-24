@@ -125,6 +125,10 @@ try {
     check(await nav.hasta(`${portadas}[${siguiente}].getAttribute("aria-hidden") === "false"`, 3000), "carrusel: la flecha pasa a la portada siguiente");
     check(await nav.evaluar(`getComputedStyle(${portadas}[${siguiente}]).transitionDuration === "0.7s" && ${portadas}[${antes}].inert`), "carrusel: fundido cruzado (700 ms) y la portada oculta no recibe clics");
   }
+  // React solo hace viajar la foto si está a la vista (con las tarjetas del inicio,
+  // Novedades queda debajo del primer pantallazo).
+  await nav.evaluar(`${card}.scrollIntoView({ block: "center" })`);
+  await espera(600);
   await nav.evaluar(`${card}.click()`);
   check(await nav.hasta(`location.pathname === "/productos/ejemplo-nike-air-max-90" && window.__transiciones.length > 0`), "navegar de la tarjeta al producto inicia una transición");
   const anims = (await nav.evaluar("window.__transiciones[0]")) ?? [];
