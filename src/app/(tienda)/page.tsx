@@ -2,14 +2,23 @@ import Link from "next/link";
 import { tienda } from "@/config/tienda";
 import { obtenerCatalogo, obtenerMarcas } from "@/lib/catalogo";
 import { filtrarProductos, opcionesDeFiltro } from "@/lib/filtros";
-import { obtenerPortadas } from "@/lib/portada";
+import { obtenerPortadas, obtenerTarjetas } from "@/lib/portada";
+import { buscarSeccion } from "@/lib/secciones";
 import { CarruselPortada } from "@/components/tienda/carrusel-portada";
 import { FranjaMarcas } from "@/components/tienda/franja-marcas";
 import { GrillaProductos } from "@/components/tienda/producto-card";
+import { TarjetasDestacadas } from "@/components/tienda/tarjetas-destacadas";
 import { TransicionPagina } from "@/components/tienda/transicion-pagina";
 
 export default async function Home() {
-  const [catalogo, portadas, marcas] = await Promise.all([obtenerCatalogo(), obtenerPortadas(), obtenerMarcas()]);
+  const [catalogo, portadas, marcas, todasLasTarjetas] = await Promise.all([
+    obtenerCatalogo(),
+    obtenerPortadas(),
+    obtenerMarcas(),
+    obtenerTarjetas(),
+  ]);
+  // Tendencias, Deportes y Outlet: solo las que tienen productos (que no lleven a una página vacía).
+  const tarjetas = todasLasTarjetas.filter((t) => catalogo.some((p) => buscarSeccion(t.seccion)?.incluye(p)));
   const { categorias } = opcionesDeFiltro(catalogo);
   // Los más nuevos, con los que tienen stock primero.
   const novedades = filtrarProductos(catalogo, { orden: "recientes" }).slice(0, 8);
@@ -37,7 +46,18 @@ export default async function Home() {
 
         <main className="mx-auto w-full max-w-7xl px-4">
           {/* Con portadas, la foto ya se funde con la página: menos margen arriba. */}
-          <section className={portadas.length > 0 ? "mt-6 sm:mt-10" : "mt-12 sm:mt-16"}>
+          {tarjetas.length > 0 && (
+            <section className={portadas.length > 0 ? "mt-6 sm:mt-10" : "mt-12 sm:mt-16"}>
+              <h2 className="sr-only">Destacados</h2>
+              <TarjetasDestacadas tarjetas={tarjetas} />
+            </section>
+          )}
+
+          <section
+            className={
+              tarjetas.length > 0 ? "subir mt-16" : portadas.length > 0 ? "mt-6 sm:mt-10" : "mt-12 sm:mt-16"
+            }
+          >
             <div className="mb-6 flex items-baseline justify-between">
               <h2 className="titulo-seccion">Novedades</h2>
               {catalogo.length > novedades.length && (

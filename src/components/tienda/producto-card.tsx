@@ -4,7 +4,12 @@ import { ViewTransition } from "react";
 import type { ProductoResumen } from "@/lib/catalogo";
 import { descuento, formatearPrecio } from "@/lib/formato";
 
+// Columnas de la grilla y tamaño de las fotos. Con la columna de filtros al
+// costado (listados en la compu) entran 3 tarjetas en 1024 px y 4 desde 1280 px.
+const grilla = (conFiltros: boolean) =>
+  `grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-4 md:grid-cols-3 ${conFiltros ? "xl:grid-cols-4" : "lg:grid-cols-4"}`;
 const TAMANIOS = "(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw";
+const TAMANIOS_CON_FILTROS = "(min-width: 1280px) 240px, (min-width: 768px) 33vw, 50vw";
 
 /** Con este stock total o menos, la tarjeta dice "Últimas unidades". */
 const POCAS_UNIDADES = 2;
@@ -16,22 +21,30 @@ const POCAS_UNIDADES = 2;
  * - `viajar`: la foto "viaja" hasta el producto al tocar la tarjeta. Se apaga
  *   en "También te puede interesar": esos productos suelen estar también en la
  *   grilla de la página anterior y volarían de una grilla a la otra.
+ * - `conFiltros`: la grilla va al lado de la columna de filtros (más angosta).
  */
 export function GrillaProductos({
   productos,
   prioridad = 0,
   viajar = true,
+  conFiltros = false,
 }: {
   productos: ProductoResumen[];
   prioridad?: number;
   viajar?: boolean;
+  conFiltros?: boolean;
 }) {
   return (
-    <ul className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-4 md:grid-cols-3 lg:grid-cols-4">
+    <ul className={grilla(conFiltros)}>
       {productos.map((p, i) => (
         // subir / aparecer: la tarjeta sube y la foto se funde al entrar en pantalla con el scroll (globals.css).
         <li key={p.id} className="subir">
-          <ProductoCard producto={p} prioridad={i < prioridad} viajar={viajar} />
+          <ProductoCard
+            producto={p}
+            prioridad={i < prioridad}
+            viajar={viajar}
+            tamanios={conFiltros ? TAMANIOS_CON_FILTROS : TAMANIOS}
+          />
         </li>
       ))}
     </ul>
@@ -42,10 +55,12 @@ function ProductoCard({
   producto,
   prioridad,
   viajar,
+  tamanios,
 }: {
   producto: ProductoResumen;
   prioridad: boolean;
   viajar: boolean;
+  tamanios: string;
 }) {
   const agotado = producto.stockTotal === 0;
   const pocas = !agotado && producto.stockTotal <= POCAS_UNIDADES;
@@ -69,7 +84,7 @@ function ProductoCard({
                 fill
                 loading={prioridad ? "eager" : "lazy"}
                 fetchPriority={prioridad ? "high" : undefined}
-                sizes={TAMANIOS}
+                sizes={tamanios}
                 className="object-cover transition-[scale] duration-500 ease-out group-hover:scale-105"
               />
             ) : (
@@ -114,9 +129,9 @@ function ProductoCard({
 }
 
 /** Esqueleto que se muestra mientras carga la grilla. */
-export function GrillaCargando({ cantidad = 8 }: { cantidad?: number }) {
+export function GrillaCargando({ cantidad = 8, conFiltros = false }: { cantidad?: number; conFiltros?: boolean }) {
   return (
-    <ul className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-4 md:grid-cols-3 lg:grid-cols-4" aria-hidden>
+    <ul className={grilla(conFiltros)} aria-hidden>
       {Array.from({ length: cantidad }, (_, i) => (
         <li key={i}>
           <div className="aspect-square brillo rounded-lg bg-neutral-100" />

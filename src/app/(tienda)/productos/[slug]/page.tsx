@@ -73,14 +73,13 @@ async function Ficha({ params }: Pick<PageProps<"/productos/[slug]">, "params">)
   const producto = await obtenerProducto(slug);
   if (!producto) notFound();
 
-  const relacionados = producto.categoria
-    ? filtrarProductos(await obtenerCatalogo(), {
-        categoria: producto.categoria.slug,
-        orden: "recientes",
-      })
-        .filter((p) => p.id !== producto.id)
-        .slice(0, 4)
-    : [];
+  // Primero los de la misma categoría (Running) y, si faltan, los de su madre (Zapatillas).
+  const catalogo = await obtenerCatalogo();
+  const relacionados = [producto.categoria?.slug, producto.categoria?.madre?.slug]
+    .filter((slug): slug is string => !!slug)
+    .flatMap((categoria) => filtrarProductos(catalogo, { categoria, orden: "recientes" }))
+    .filter((p, i, lista) => p.id !== producto.id && lista.findIndex((q) => q.id === p.id) === i)
+    .slice(0, 4);
 
   return (
     <>
@@ -93,16 +92,16 @@ async function Ficha({ params }: Pick<PageProps<"/productos/[slug]">, "params">)
         <Link href="/productos" className="hover:text-neutral-900">
           Productos
         </Link>
-        {producto.categoria && (
-          <>
-            {" / "}
-            <Link
-              href={`/productos?categoria=${producto.categoria.slug}`}
-              className="hover:text-neutral-900"
-            >
-              {producto.categoria.name}
-            </Link>
-          </>
+        {[producto.categoria?.madre, producto.categoria].map(
+          (c) =>
+            c && (
+              <span key={c.slug}>
+                {" / "}
+                <Link href={`/productos?categoria=${c.slug}`} className="hover:text-neutral-900">
+                  {c.name}
+                </Link>
+              </span>
+            ),
         )}
       </nav>
 

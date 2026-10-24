@@ -2,15 +2,25 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
-import { IconoCerrar, IconoMenu } from "./iconos";
+import { IconoCerrar, IconoChevron, IconoMenu } from "./iconos";
+import type { MenuSeccion } from "./menu-secciones";
 
 type Enlace = { href: string; nombre: string };
 
 /**
- * Menú del encabezado en el celular: un botón que abre la lista de categorías
- * debajo del encabezado. Se cierra al elegir un link, con Escape o tocando afuera.
+ * Menú del encabezado en el celular: un botón que abre, debajo del encabezado,
+ * las secciones (plegables, con sus categorías), otros links principales y los
+ * secundarios. Se cierra al elegir un link, con Escape o tocando afuera.
  */
-export function MenuMovil({ enlaces, secundarios }: { enlaces: Enlace[]; secundarios: Enlace[] }) {
+export function MenuMovil({
+  secciones,
+  enlaces,
+  secundarios,
+}: {
+  secciones: MenuSeccion[];
+  enlaces: Enlace[];
+  secundarios: Enlace[];
+}) {
   const [abierto, setAbierto] = useState(false);
   // Dónde termina el encabezado (cambia si se ve la barra del anuncio arriba).
   const [abajo, setAbajo] = useState(56);
@@ -59,6 +69,11 @@ export function MenuMovil({ enlaces, secundarios }: { enlaces: Enlace[]; secunda
             className="absolute inset-x-0 top-full z-40 overflow-y-auto border-b border-neutral-200 bg-white shadow-lg transition-[opacity,translate] duration-200 ease-out starting:-translate-y-2 starting:opacity-0"
           >
             <ul className="px-4 py-2">
+              {secciones.map((s) => (
+                <li key={s.href}>
+                  <SeccionPlegable seccion={s} alElegir={cerrar} />
+                </li>
+              ))}
               {enlaces.map((e) => (
                 <li key={e.href}>
                   <Link
@@ -84,5 +99,43 @@ export function MenuMovil({ enlaces, secundarios }: { enlaces: Enlace[]; secunda
         </>
       )}
     </div>
+  );
+}
+
+/** Hombre, Mujer, Niños: se tocan para ver sus categorías (las subcategorías van debajo, con sangría). */
+function SeccionPlegable({ seccion, alElegir }: { seccion: MenuSeccion; alElegir: () => void }) {
+  const link = "block py-2 text-neutral-700";
+  return (
+    <details className="group border-b border-neutral-100">
+      <summary className="flex cursor-pointer list-none items-center justify-between py-3.5 text-lg font-medium [&::-webkit-details-marker]:hidden">
+        {seccion.nombre}
+        <IconoChevron className="size-5 text-neutral-500 transition-transform duration-200 group-open:rotate-180" />
+      </summary>
+      <ul className="pb-3 pl-3">
+        <li>
+          <Link href={seccion.href} onClick={alElegir} className={`${link} font-medium text-neutral-900`}>
+            Ver todo {seccion.nombre}
+          </Link>
+        </li>
+        {seccion.categorias.map((c) => (
+          <li key={c.href}>
+            <Link href={c.href} onClick={alElegir} className={link}>
+              {c.nombre}
+            </Link>
+            {c.subcategorias.length > 0 && (
+              <ul className="ml-1 border-l border-neutral-200 pl-3">
+                {c.subcategorias.map((sub) => (
+                  <li key={sub.href}>
+                    <Link href={sub.href} onClick={alElegir} className={link}>
+                      {sub.nombre}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }

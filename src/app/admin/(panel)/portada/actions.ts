@@ -4,8 +4,9 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { borrarArchivos, rutaValida } from "@/lib/admin/archivos";
 import { catalogoActualizado } from "@/lib/admin/revalidar";
 import { mensajeError, texto, type EstadoForm } from "@/lib/form";
+import { destacadas, type Destacada } from "@/lib/secciones";
 
-// Portada del inicio (carrusel) y anuncio de la barra de arriba.
+// Portada del inicio (carrusel y tarjetas) y anuncio de la barra de arriba.
 
 /**
  * Los links tienen que ser de la tienda ("/outlet") o https. No se aceptan
@@ -163,6 +164,53 @@ export async function borrarPortada(id: string): Promise<EstadoForm> {
     .maybeSingle();
   if (error) return { error: mensajeError(error) };
   await borrarArchivos([data?.image_path, data?.mobile_image_path]);
+
+  catalogoActualizado();
+  return {};
+}
+
+// ---------------------------------------------------------------------
+// Tarjetas del inicio (Tendencias, Deportes y Outlet)
+// ---------------------------------------------------------------------
+
+export async function guardarTarjeta(
+  seccion: Destacada,
+  _estado: EstadoForm,
+  formData: FormData,
+): Promise<EstadoForm> {
+  const { supabase } = await requireAdmin();
+  if (!destacadas.includes(seccion)) return { error: "Tarjeta inválida." };
+
+  const titulo = texto(formData, "titulo");
+  const subtitulo = texto(formData, "subtitulo");
+  if (!titulo) return { error: "Escribí un título." };
+  if (titulo.length > 40 || subtitulo.length > 100) {
+    return { error: "El título (40) o el texto (100) son demasiado largos." };
+  }
+
+  const { error } = await supabase
+    .from("home_cards")
+    .update({ title: titulo, subtitle: subtitulo, active: formData.get("visible") === "on" })
+    .eq("section", seccion);
+  if (error) return { error: mensajeError(error) };
+
+  catalogoActualizado();
+  return { ok: "Tarjeta guardada." };
+}
+
+/** Guarda (o quita, con null) la foto de una tarjeta y borra el archivo anterior. */
+export async function guardarFotoTarjeta(seccion: Destacada, ruta: string | null): Promise<EstadoForm> {
+  const { supabase } = await requireAdmin();
+  if (!destacadas.includes(seccion)) return { error: "Tarjeta inválida." };
+  if (ruta !== null && !rutaValida("portada", ruta)) return { error: "Ruta de foto inválida." };
+
+  const { data: anterior } = await supabase.from("home_cards").select("image_path").eq("section", seccion).maybeSingle();
+  const { error } = await supabase.from("home_cards").update({ image_path: ruta }).eq("section", seccion);
+  if (error) {
+    await borrarArchivos([ruta]);
+    return { error: mensajeError(error) };
+  }
+  if (anterior?.image_path !== ruta) await borrarArchivos([anterior?.image_path]);
 
   catalogoActualizado();
   return {};

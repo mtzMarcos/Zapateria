@@ -31,6 +31,16 @@ const CATEGORIAS = [
   { name: "Ojotas", slug: "ojotas", position: 3 },
 ];
 
+// Subcategorías de Zapatillas. Training y Básquet quedan sin productos: no se
+// ven en la tienda, pero sirven para probar el panel.
+const SUBCATEGORIAS = [
+  { name: "Urbanas", slug: "urbanas", position: 1, madre: "zapatillas" },
+  { name: "Running", slug: "running", position: 2, madre: "zapatillas" },
+  { name: "Training", slug: "training", position: 3, madre: "zapatillas" },
+  { name: "Básquet", slug: "basquet", position: 4, madre: "zapatillas" },
+  { name: "Skate", slug: "skate", position: 5, madre: "zapatillas" },
+];
+
 // Público, secciones del menú (Tendencias, Deportes, Outlet) y precio anterior
 // (tachado) de cada producto de ejemplo, para que los menús no queden vacíos.
 const EXTRAS = {
@@ -47,9 +57,11 @@ const EXTRAS = {
 };
 
 // stock: un número por talle, del 36 al 44. colores: uno por foto.
+// categoria: la principal (también elige el dibujo de la foto); subcategoria: opcional.
 const PRODUCTOS = [
   {
     slug: "ejemplo-nike-air-max-90",
+    subcategoria: "urbanas",
     name: "Nike Air Max 90",
     marca: "nike",
     categoria: "zapatillas",
@@ -61,6 +73,7 @@ const PRODUCTOS = [
   },
   {
     slug: "ejemplo-nike-revolution-7",
+    subcategoria: "running",
     name: "Nike Revolution 7",
     marca: "nike",
     categoria: "zapatillas",
@@ -71,6 +84,7 @@ const PRODUCTOS = [
   },
   {
     slug: "ejemplo-adidas-superstar",
+    subcategoria: "urbanas",
     name: "Adidas Superstar",
     marca: "adidas",
     categoria: "zapatillas",
@@ -81,6 +95,7 @@ const PRODUCTOS = [
   },
   {
     slug: "ejemplo-adidas-ultraboost-light",
+    subcategoria: "running",
     name: "Adidas Ultraboost Light",
     marca: "adidas",
     categoria: "zapatillas",
@@ -91,6 +106,7 @@ const PRODUCTOS = [
   },
   {
     slug: "ejemplo-puma-suede-classic",
+    subcategoria: "urbanas",
     name: "Puma Suede Classic",
     marca: "puma",
     categoria: "zapatillas",
@@ -101,6 +117,7 @@ const PRODUCTOS = [
   },
   {
     slug: "ejemplo-topper-rock",
+    subcategoria: "skate",
     name: "Topper Rock",
     marca: "topper",
     categoria: "zapatillas",
@@ -226,8 +243,8 @@ async function borrarProductos(supabase) {
   return productos.length;
 }
 
-// Borra las marcas/categorías de ejemplo que no tengan productos.
-// Si el dueño ya les asignó productos reales, quedan.
+// Borra las marcas/categorías de ejemplo que no tengan productos (ni subcategorías).
+// Si el dueño ya les asignó productos reales o subcategorías propias, quedan.
 async function borrarTaxonomias(supabase, tabla, items, columna) {
   const filas = ok(
     await supabase.from(tabla).select("id, name").in("slug", items.map((i) => i.slug)),
@@ -239,7 +256,11 @@ async function borrarTaxonomias(supabase, tabla, items, columna) {
       .from("products")
       .select("id", { count: "exact", head: true })
       .eq(columna, fila.id);
-    if (count) {
+    const { count: hijas } =
+      tabla === "categories"
+        ? await supabase.from("categories").select("id", { count: "exact", head: true }).eq("parent_id", fila.id)
+        : { count: 0 };
+    if (count || hijas) {
       quedan.push(fila.name);
       continue;
     }
@@ -264,9 +285,21 @@ async function cargar(supabase) {
       .select("id, slug"),
     "Cargar categorías",
   );
+  const madrePorSlug = new Map(categorias.map((c) => [c.slug, c.id]));
+  const subcategorias = ok(
+    await supabase
+      .from("categories")
+      .upsert(
+        SUBCATEGORIAS.map(({ madre, ...sub }) => ({ ...sub, parent_id: madrePorSlug.get(madre) })),
+        { onConflict: "slug" },
+      )
+      .select("id, slug"),
+    "Cargar subcategorías",
+  );
+  categorias.push(...subcategorias);
   const marcaPorSlug = new Map(marcas.map((m) => [m.slug, m]));
   const categoriaPorSlug = new Map(categorias.map((c) => [c.slug, c.id]));
-  console.log(`Marcas: ${marcas.length}. Categorías: ${categorias.length}.`);
+  console.log(`Marcas: ${marcas.length}. Categorías y subcategorías: ${categorias.length}.`);
 
   const ahora = Date.now();
   for (const [i, p] of PRODUCTOS.entries()) {
@@ -281,7 +314,7 @@ async function cargar(supabase) {
           price: p.price,
           active: true,
           brand_id: marca.id,
-          category_id: categoriaPorSlug.get(p.categoria),
+          category_id: categoriaPorSlug.get(p.subcategoria ?? p.categoria),
           ...EXTRAS[p.slug],
           // Fechas escalonadas para que el orden "más nuevos" sea siempre el mismo.
           created_at: new Date(ahora - i * 60_000).toISOString(),
@@ -319,8 +352,10 @@ async function borrar(supabase) {
   console.log(`Se borraron ${borrados} productos de ejemplo (con sus talles y fotos).`);
 
   const marcas = await borrarTaxonomias(supabase, "brands", MARCAS, "brand_id");
+  // Primero las subcategorías: una categoría con subcategorías no se puede borrar.
+  const subcategorias = await borrarTaxonomias(supabase, "categories", SUBCATEGORIAS, "category_id");
   const categorias = await borrarTaxonomias(supabase, "categories", CATEGORIAS, "category_id");
-  const quedan = [...marcas, ...categorias];
+  const quedan = [...marcas, ...subcategorias, ...categorias];
   if (quedan.length > 0) {
     console.log(`Quedan (tienen productos reales): ${quedan.join(", ")}.`);
   }

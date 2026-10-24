@@ -1,4 +1,5 @@
-// Tienda pública: secciones del menú, marcas, buscador y sugerencias, páginas
+// Tienda pública: secciones, menú del encabezado, tarjetas del inicio,
+// subcategorías, marcas, buscador y sugerencias, páginas
 // que no existen, SEO y páginas legales. Lo que debería aparecer se calcula con
 // los datos de la base (productos visibles), no está fijo en la prueba.
 import { BASE, check, db, nuevoCliente, terminar } from "./utilidades.mjs";
@@ -13,8 +14,16 @@ const igual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 const { data: productos } = await db
   .from("products")
-  .select("name, slug, audience, is_trending, is_sports, is_outlet, compare_at_price, price, brands(name, slug), categories(name)")
+  .select("name, slug, audience, is_trending, is_sports, is_outlet, compare_at_price, price, brands(name, slug), category_id")
   .eq("active", true);
+// Categoría de cada producto con su madre (si es una subcategoría).
+const { data: filasCategorias } = await db.from("categories").select("id, name, slug, parent_id");
+const categoriaPorId = new Map(filasCategorias.map((c) => [c.id, c]));
+for (const p of productos) {
+  const c = categoriaPorId.get(p.category_id);
+  p.categoria = c ?? null;
+  p.madre = c?.parent_id ? categoriaPorId.get(c.parent_id) : null;
+}
 
 // --- Secciones del menú
 const secciones = {
@@ -38,7 +47,55 @@ check(
 );
 check(outlet.includes("line-through"), "Outlet: precio anterior tachado");
 const home = (await c.get("/")).html;
-check(["Mujer", "Hombre", "Niños", "Tendencias", "Deportes", "Outlet"].every((s) => home.includes(`>${s}</a>`)), "el menú tiene las 6 secciones");
+const encabezado = home.slice(home.indexOf("<header"), home.indexOf("</header>"));
+const inicioMenu = encabezado.indexOf('aria-label="Secciones"');
+const menu = encabezado.slice(inicioMenu, encabezado.indexOf("</nav>", inicioMenu));
+check(
+  igual([...menu.matchAll(/<a [^>]*href="\/(\w+)"/g)].map((m) => m[1]), ["hombre", "mujer", "ninos"]),
+  "el menú del encabezado tiene Hombre, Mujer y Niños (en ese orden)",
+);
+check(!/href="\/(tendencias|deportes|outlet)"/.test(encabezado), "Tendencias, Deportes y Outlet ya no están en el encabezado");
+
+// --- Tarjetas del inicio: las visibles de secciones con productos, en orden
+const { data: filasTarjetas } = await db.from("home_cards").select("section, title, image_path, active").order("position");
+const tarjetasEsperadas = filasTarjetas.filter((t) => t.active && productos.some(secciones[t.section])).map((t) => t.section);
+const zonaTarjetas = home.slice(home.indexOf(">Destacados</h2>"), home.indexOf(">Novedades</h2>"));
+const tarjetasVistas = home.includes(">Destacados</h2>") ? [...zonaTarjetas.matchAll(/href="\/(\w+)"/g)].map((m) => m[1]) : [];
+check(igual(tarjetasVistas, tarjetasEsperadas), `inicio: tarjetas de ${tarjetasVistas.join(", ") || "ninguna"} debajo de la portada`);
+const sinFoto = filasTarjetas.some((t) => tarjetasEsperadas.includes(t.section) && !t.image_path);
+if (sinFoto) check(zonaTarjetas.includes("[Completar: foto]"), "tarjeta sin foto: aviso para completarla");
+
+// --- Subcategorías: la madre incluye a sus subcategorías; la subcategoría, solo lo suyo
+const conSub = productos.find((p) => p.madre);
+if (conSub) {
+  const madre = conSub.madre;
+  const enMadre = (p) => p.categoria?.id === madre.id || p.madre?.id === madre.id;
+  check(
+    igual(await tarjetas(`/productos?categoria=${madre.slug}`), nombres(productos.filter(enMadre))),
+    `${madre.name}: incluye las de sus subcategorías`,
+  );
+  const sub = conSub.categoria;
+  check(
+    igual(await tarjetas(`/productos?categoria=${sub.slug}`), nombres(productos.filter((p) => p.categoria?.id === sub.id))),
+    `${madre.name} → ${sub.name}: solo las suyas`,
+  );
+  const seccion = Object.keys(secciones).find((k) => secciones[k](conSub));
+  check(
+    igual(
+      await tarjetas(`/${seccion}?categoria=${sub.slug}`),
+      nombres(productos.filter((p) => secciones[seccion](p) && p.categoria?.id === sub.id)),
+    ),
+    `/${seccion}?categoria=${sub.slug}: sección y subcategoría juntas`,
+  );
+  const listado = (await c.get(`/productos?categoria=${sub.slug}`)).html;
+  const columna = listado.slice(listado.indexOf('aria-label="Filtros"'), listado.indexOf("</aside>"));
+  check(
+    columna.includes(`categoria=${madre.slug}"`) && columna.includes(`categoria=${sub.slug}" aria-current="true"`),
+    "columna de filtros: la subcategoría elegida, marcada dentro de su categoría",
+  );
+  const fichaSub = (await c.get(`/productos/${conSub.slug}`)).html;
+  check(fichaSub.indexOf(`>${madre.name}</a>`) > 0 && fichaSub.indexOf(`>${madre.name}</a>`) < fichaSub.indexOf(`>${sub.name}</a>`), "producto: Productos / categoría / subcategoría arriba");
+}
 
 // --- Marcas
 const marcas = [...new Map(productos.filter((p) => p.brands).map((p) => [p.brands.slug, p.brands])).values()];
@@ -51,10 +108,10 @@ check(marcas.every((m) => home.includes(`href="/marcas/${m.slug}"`)), "la franja
 // --- Buscador
 const buscar = async (q) => tarjetas(`/productos?q=${encodeURIComponent(q)}`);
 const coincide = (p, q) => {
-  const texto = sinTildes([p.name, p.brands?.name, p.categories?.name, { ninos: "niños chicos", unisex: "unisex mujer hombre" }[p.audience] ?? p.audience].join(" "));
+  const texto = sinTildes([p.name, p.brands?.name, p.categoria?.name, p.madre?.name, { ninos: "niños chicos", unisex: "unisex mujer hombre" }[p.audience] ?? p.audience].join(" "));
   return sinTildes(q).split(/\s+/).every((w) => texto.includes(w));
 };
-for (const q of [marcas[0].name.toUpperCase(), "zapatillas mujer", "NIÑOS", "ojota"]) {
+for (const q of [marcas[0].name.toUpperCase(), "zapatillas mujer", "NIÑOS", "ojota", "zapatillas running"]) {
   const visto = await buscar(q);
   check(igual(visto, nombres(productos.filter((p) => coincide(p, q)))), `buscar “${q}”: ${visto.length} resultados correctos`);
 }
@@ -87,6 +144,7 @@ check(cabecera(ficha).includes('<meta name="description"') && cabecera(ficha).in
 check(ficha.includes('"@type":"Product"') && ficha.includes('"priceCurrency":"ARS"'), "producto: datos estructurados para Google");
 const sitemap = await fetch(`${BASE}/sitemap.xml`).then((r) => r.text());
 check(["/mujer", "/outlet", `/marcas/${marcas[0].slug}`, `/productos/${producto.slug}`, "/terminos"].every((r) => sitemap.includes(`${r}</loc>`)), "sitemap: secciones, marcas, productos y legales");
+if (conSub) check(sitemap.includes(`categoria=${conSub.categoria.slug}</loc>`), "sitemap: subcategorías");
 const robots = await fetch(`${BASE}/robots.txt`).then((r) => r.text());
 check(["/admin", "/carrito", "/checkout", "/pedido/"].every((r) => robots.includes(`Disallow: ${r}`)), "robots.txt: no indexa panel, carrito, checkout ni pedidos");
 check((await fetch(`${BASE}/opengraph-image`)).headers.get("content-type") === "image/png", "imagen para compartir");

@@ -26,6 +26,24 @@ try {
     "pie en el celular: 3 secciones plegables y el botón de arrepentimiento a la vista",
   );
 
+  // Menú ☰: Hombre, Mujer y Niños plegables, con sus categorías y subcategorías adentro.
+  await nav.evaluar(`document.querySelector('button[aria-label="Abrir menú"]').click()`);
+  const menuCelular = `document.querySelector('nav[aria-label="Menú"]')`;
+  check(
+    await nav.hasta(`[...${menuCelular}?.querySelectorAll("summary") ?? []].map((s) => s.textContent).join(",") === "Hombre,Mujer,Niños"`, 3000),
+    "menú del celular: Hombre, Mujer y Niños plegables",
+  );
+  await nav.evaluar(`${menuCelular}.querySelector("summary").click()`);
+  check(
+    await nav.hasta(`${menuCelular}.querySelector("details[open] a[href='/hombre?categoria=running']")?.checkVisibility() === true`, 3000),
+    "al tocar Hombre se ven sus categorías y la subcategoría Running",
+  );
+  await nav.evaluar(`${menuCelular}.querySelector("a[href='/hombre?categoria=running']").click()`);
+  check(
+    await nav.hasta(`location.pathname === "/hombre" && location.search === "?categoria=running" && !${menuCelular}`),
+    "elegir una subcategoría navega y cierra el menú",
+  );
+
   await nav.ir("/productos/ejemplo-nike-air-max-90");
   // Galería: fundido cruzado al cambiar de foto (deslizar o puntitos).
   const diapositivas = `[...document.querySelector('[aria-roledescription="galería"]').querySelectorAll(":scope > div.col-start-1")]`;
@@ -112,6 +130,51 @@ try {
   const anims = (await nav.evaluar("window.__transiciones[0]")) ?? [];
   check(anims.some((a) => /::view-transition-group\(foto-/.test(a)), "la foto de la tarjeta viaja hasta la del producto");
   check(anims.some((a) => /::view-transition-new\(.*\) 200$/.test(a)), "la página nueva aparece con un fundido corto");
+  nav.cerrar();
+
+  // --- Compu: menú desplegable del encabezado y columna de filtros
+  nav = await abrirNavegador({ ancho: 1280 });
+  await nav.ir("/");
+  const flecha = `document.querySelector('button[aria-controls="menu-hombre"]')`;
+  const panel = `document.getElementById("menu-hombre")`;
+  const hombre = await nav.evaluar(
+    `(() => { const b = document.querySelector('nav[aria-label="Secciones"] a[href="/hombre"]').getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; })()`,
+  );
+  await nav.cdp("Input.dispatchMouseEvent", { type: "mouseMoved", x: hombre.x, y: hombre.y });
+  check(await nav.hasta(`!!${panel} && ${flecha}.getAttribute("aria-expanded") === "true"`, 3000), "menú: el mouse sobre Hombre despliega sus categorías");
+  check(
+    await nav.evaluar(`(() => { const p = ${panel}.getBoundingClientRect(); return p.left === 0 && Math.round(p.width) === document.documentElement.clientWidth; })()`),
+    "el panel del menú ocupa todo el ancho, debajo del encabezado",
+  );
+  check(await nav.evaluar(`!!${panel}.querySelector('a[href="/hombre?categoria=running"]')`), "en el panel: la subcategoría Running, dentro de Zapatillas");
+  await nav.cdp("Input.dispatchMouseEvent", { type: "mouseMoved", x: 5, y: 700 });
+  check(await nav.hasta(`!${panel}`, 2000), "al sacar el mouse, el menú se cierra");
+  // Con el teclado: la flecha abre y Escape cierra devolviendo el foco.
+  await nav.evaluar(`${flecha}.focus(); ${flecha}.click()`);
+  check(await nav.hasta(`!!${panel}`, 2000), "la flecha (teclado o pantalla táctil) abre el menú");
+  await nav.cdp("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+  check(await nav.hasta(`!${panel} && document.activeElement === ${flecha}`, 2000), "Escape cierra el menú y el foco vuelve a la flecha");
+  await nav.evaluar(`${flecha}.click()`);
+  await nav.hasta(`!!${panel}`, 2000);
+  await nav.evaluar(`${panel}.querySelector('a[href="/hombre?categoria=running"]').click()`);
+  check(await nav.hasta(`location.pathname === "/hombre" && location.search === "?categoria=running" && !${panel}`), "elegir una subcategoría navega y cierra el menú");
+  check(
+    await nav.hasta(`document.querySelector('aside[aria-label="Filtros"]')?.checkVisibility() && document.querySelector('aside[aria-label="Filtros"] a[aria-current="true"]')?.textContent === "Running"`, 3000),
+    "columna de filtros a la izquierda, con Running marcada",
+  );
+  check(
+    await nav.evaluar(`![...document.querySelectorAll("button")].some((b) => b.textContent.includes("Filtrar") && b.checkVisibility())`),
+    "en la compu no se ve el botón de filtros",
+  );
+  nav.cerrar();
+
+  // --- Tablet: sin columna, con el botón de filtros
+  nav = await abrirNavegador({ ancho: 900 });
+  await nav.ir("/productos");
+  check(
+    await nav.evaluar(`!document.querySelector('aside[aria-label="Filtros"]').checkVisibility() && [...document.querySelectorAll("button")].some((b) => b.textContent.includes("Filtrar") && b.checkVisibility())`),
+    "tablet: botón de filtros en lugar de la columna",
+  );
   nav.cerrar();
 
   // --- Fundido de las fotos al cargar: se aplica a las que todavía no cargaron cuando

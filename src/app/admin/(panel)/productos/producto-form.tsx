@@ -32,7 +32,7 @@ export function ProductoForm({
   accion: (estado: EstadoForm, formData: FormData) => Promise<EstadoForm>;
   producto?: DatosProducto;
   marcas: Opcion[];
-  categorias: Opcion[];
+  categorias: (Opcion & { subcategorias: Opcion[] })[];
   textoBoton: string;
 }) {
   const [estado, formAction] = useActionState(accion, estadoInicial);
@@ -83,11 +83,23 @@ export function ProductoForm({
             className={claseInput}
           >
             <option value="">Sin categoría</option>
-            {categorias.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
+            {/* Las que tienen subcategorías van agrupadas: la categoría sola ("Zapatillas en general") y cada subcategoría. */}
+            {categorias.map((c) =>
+              c.subcategorias.length === 0 ? (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ) : (
+                <optgroup key={c.id} label={c.name}>
+                  <option value={c.id}>{c.name} en general</option>
+                  {c.subcategorias.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ),
+            )}
           </select>
         </div>
         <div>

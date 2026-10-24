@@ -1,23 +1,25 @@
 import { requireAdmin } from "@/lib/admin/auth";
-import { secciones } from "@/lib/secciones";
+import { buscarSeccion, secciones, type Destacada } from "@/lib/secciones";
 import { urlFoto } from "@/lib/supabase/env";
-import { BotonAgregarPortada, EditorPortada, FormAnuncio, type Destino } from "./editor";
+import { BotonAgregarPortada, EditorPortada, EditorTarjeta, FormAnuncio, type Destino } from "./editor";
 
 export default async function PortadaPage() {
   const { supabase } = await requireAdmin();
 
-  const [ajustes, portadas, marcas, categorias, productos] = await Promise.all([
+  const [ajustes, portadas, tarjetas, marcas, categorias, productos] = await Promise.all([
     supabase.from("site_settings").select("announcement_text, announcement_url, announcement_active").maybeSingle(),
     supabase
       .from("home_slides")
       .select("id, title, subtitle, button_text, button_url, image_path, mobile_image_path, active")
       .order("position")
       .order("created_at"),
+    supabase.from("home_cards").select("section, title, subtitle, image_path, active").order("position"),
     supabase.from("brands").select("name, slug").order("name"),
     supabase.from("categories").select("name, slug").order("position").order("name"),
     supabase.from("products").select("name, slug").eq("active", true).order("name"),
   ]);
   if (portadas.error) throw portadas.error;
+  if (tarjetas.error) throw tarjetas.error;
 
   // Opciones para "El botón lleva a".
   const destinos: Destino[] = [
@@ -95,6 +97,31 @@ export default async function PortadaPage() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section>
+        <div className="mb-4">
+          <h2 className="font-semibold">Tarjetas del inicio</h2>
+          <p className="text-sm text-neutral-500">
+            Las tres tarjetas grandes debajo de las fotos del inicio. Las ocultas, o las de una sección sin productos,
+            no se muestran.
+          </p>
+        </div>
+        <ul className="grid gap-6 lg:grid-cols-3">
+          {tarjetas.data.map((t) => (
+            <EditorTarjeta
+              key={t.section}
+              nombre={buscarSeccion(t.section)?.nombre ?? t.section}
+              tarjeta={{
+                seccion: t.section as Destacada,
+                title: t.title,
+                subtitle: t.subtitle,
+                active: t.active,
+                foto: t.image_path ? urlFoto(t.image_path) : null,
+              }}
+            />
+          ))}
+        </ul>
       </section>
     </div>
   );

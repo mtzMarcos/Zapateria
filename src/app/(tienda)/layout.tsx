@@ -5,6 +5,7 @@ import { CarritoLink, CarritoLinkVacio } from "@/components/tienda/carrito-link"
 import { Dato } from "@/components/tienda/dato";
 import { IconoChevron } from "@/components/tienda/iconos";
 import { MenuMovil } from "@/components/tienda/menu-movil";
+import { NavegacionSecciones, type MenuSeccion } from "@/components/tienda/menu-secciones";
 import { BuscadorCelular, BuscadorCompu } from "@/components/tienda/buscador";
 import { obtenerAnuncio } from "@/lib/portada";
 import { secciones } from "@/lib/secciones";
@@ -21,7 +22,8 @@ export default function TiendaLayout({ children }: LayoutProps<"/">) {
         className="sticky top-0 z-30 border-b border-neutral-200 bg-white"
         style={{ viewTransitionName: "encabezado" }}
       >
-        <div className="relative mx-auto flex h-14 w-full max-w-7xl items-center gap-2 px-4 md:h-16 md:gap-6">
+        {/* Sin "relative": los menús desplegables se ubican respecto del <header> (a todo lo ancho). */}
+        <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-2 px-4 md:h-16 md:gap-6">
           <MenuCelular />
           <Link href="/" className="text-lg font-bold md:text-xl">
             {tienda.nombre}
@@ -194,31 +196,43 @@ function ColumnaPie({ titulo, children }: { titulo: string; children: React.Reac
   );
 }
 
-// Secciones del menú principal: Mujer, Hombre, Niños, Tendencias, Deportes y Outlet.
+// Todas las secciones (para el pie): Hombre, Mujer, Niños, Tendencias, Deportes y Outlet.
 const enlacesSecciones = secciones.map((s) => ({ href: `/${s.slug}`, nombre: s.nombre }));
 
-/** Menú principal en la compu (en el celular va en el ☰). */
-function Navegacion() {
-  return (
-    <nav aria-label="Secciones" className="hidden flex-1 justify-center gap-x-6 text-sm font-medium lg:gap-x-8 md:flex">
-      {enlacesSecciones.map((e) => (
-        <Link key={e.href} href={e.href} className="py-2 hover:underline hover:underline-offset-8">
-          {e.nombre}
-        </Link>
-      ))}
-    </nav>
-  );
+/**
+ * Hombre, Mujer y Niños con las categorías (y subcategorías) que tienen
+ * productos en cada una. Vienen de la caché del catálogo: el menú forma parte
+ * de la página estática y aparece al instante.
+ */
+async function menuSecciones(): Promise<MenuSeccion[]> {
+  const catalogo = await obtenerCatalogo();
+  return secciones
+    .filter((s) => s.enMenu)
+    .map((s) => {
+      const { categorias } = opcionesDeFiltro(catalogo.filter(s.incluye));
+      const enlace = (c: { name: string; slug: string }) => ({
+        nombre: c.name,
+        href: `/${s.slug}?categoria=${c.slug}`,
+      });
+      return {
+        nombre: s.nombre,
+        href: `/${s.slug}`,
+        categorias: categorias.map((c) => ({ ...enlace(c), subcategorias: c.subcategorias.map(enlace) })),
+      };
+    });
 }
 
-// Las categorías vienen de la caché del catálogo: el menú forma parte de la
-// página estática y aparece al instante.
+/** Menú principal en la compu (en el celular va en el ☰). */
+async function Navegacion() {
+  return <NavegacionSecciones secciones={await menuSecciones()} />;
+}
+
 async function MenuCelular() {
-  const { categorias } = opcionesDeFiltro(await obtenerCatalogo());
   return (
     <MenuMovil
-      enlaces={[...enlacesSecciones, { href: "/productos", nombre: "Todos los productos" }]}
+      secciones={await menuSecciones()}
+      enlaces={[{ href: "/productos", nombre: "Todos los productos" }]}
       secundarios={[
-        ...categorias.map((c) => ({ href: `/productos?categoria=${c.slug}`, nombre: c.name })),
         ...legales,
         { href: "/arrepentimiento", nombre: "Botón de arrepentimiento" },
       ]}

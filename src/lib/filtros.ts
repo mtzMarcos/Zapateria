@@ -1,4 +1,4 @@
-import type { ProductoResumen } from "@/lib/catalogo";
+import type { Categoria, ProductoResumen } from "@/lib/catalogo";
 import { compararTalles } from "@/lib/talles";
 
 export const ordenes = {
@@ -66,11 +66,20 @@ const palabrasPublico: Record<string, string> = {
   unisex: "unisex mujer hombre",
 };
 
-/** true si todas las palabras buscadas aparecen en el nombre, la marca, la categoría o el público. */
+/**
+ * true si todas las palabras buscadas aparecen en el nombre, la marca, la
+ * categoría (y su madre: "zapatillas running") o el público.
+ */
 export function coincideBusqueda(producto: ProductoResumen, busqueda: string) {
   const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
   const texto = normalizarTexto(
-    [producto.name, producto.marca?.name, producto.categoria?.name, palabrasPublico[producto.publico]]
+    [
+      producto.name,
+      producto.marca?.name,
+      producto.categoria?.name,
+      producto.categoria?.madre?.name,
+      palabrasPublico[producto.publico],
+    ]
       .filter(Boolean)
       .join(" "),
   );
@@ -82,7 +91,10 @@ export function filtrarProductos(productos: ProductoResumen[], filtros: Filtros)
   const resultado = productos.filter(
     (p) =>
       (!filtros.q || coincideBusqueda(p, filtros.q)) &&
-      (!filtros.categoria || p.categoria?.slug === filtros.categoria) &&
+      // Una categoría madre (Zapatillas) incluye las de sus subcategorías (Running…).
+      (!filtros.categoria ||
+        p.categoria?.slug === filtros.categoria ||
+        p.categoria?.madre?.slug === filtros.categoria) &&
       (!filtros.marca || p.marca?.slug === filtros.marca) &&
       (!filtros.talle || p.talles.some((t) => t.size === filtros.talle && t.stock > 0)),
   );
@@ -96,22 +108,50 @@ export function filtrarProductos(productos: ProductoResumen[], filtros: Filtros)
   });
 }
 
-/** Categorías, marcas y talles que tienen al menos un producto visible (para los filtros). */
+/** Una categoría con sus subcategorías (vacío si no tiene). */
+export type CategoriaArbol = Categoria & { subcategorias: Categoria[] };
+
+const porPosicion = (a: Categoria, b: Categoria) => a.position - b.position || a.name.localeCompare(b.name, "es");
+
+/** Nombre de una categoría o subcategoría del árbol, por su slug. */
+export function nombreCategoria(arbol: CategoriaArbol[], slug: string) {
+  for (const c of arbol) {
+    if (c.slug === slug) return c.name;
+    const sub = c.subcategorias.find((s) => s.slug === slug);
+    if (sub) return sub.name;
+  }
+  return undefined;
+}
+
+/**
+ * Categorías (en árbol), marcas y talles que tienen al menos un producto
+ * visible (para los filtros y los menús). Una categoría madre aparece si
+ * tiene productos propios o en alguna de sus subcategorías.
+ */
 export function opcionesDeFiltro(productos: ProductoResumen[]) {
-  const categorias = new Map<string, { name: string; slug: string; position: number }>();
+  const categorias = new Map<string, { categoria: Categoria; subcategorias: Map<string, Categoria> }>();
   const marcas = new Map<string, { name: string; slug: string }>();
   const talles = new Set<string>();
 
   for (const p of productos) {
-    if (p.categoria) categorias.set(p.categoria.slug, p.categoria);
+    if (p.categoria) {
+      const { madre, ...propia } = p.categoria;
+      const raiz = madre ?? propia;
+      const nodo = categorias.get(raiz.slug) ?? { categoria: raiz, subcategorias: new Map() };
+      if (madre) nodo.subcategorias.set(propia.slug, propia);
+      categorias.set(raiz.slug, nodo);
+    }
     if (p.marca) marcas.set(p.marca.slug, p.marca);
     for (const t of p.talles) if (t.stock > 0) talles.add(t.size);
   }
 
   return {
-    categorias: [...categorias.values()].toSorted(
-      (a, b) => a.position - b.position || a.name.localeCompare(b.name, "es"),
-    ),
+    categorias: [...categorias.values()]
+      .map(({ categoria, subcategorias }) => ({
+        ...categoria,
+        subcategorias: [...subcategorias.values()].toSorted(porPosicion),
+      }))
+      .toSorted(porPosicion) as CategoriaArbol[],
     marcas: [...marcas.values()].toSorted((a, b) => a.name.localeCompare(b.name, "es")),
     talles: [...talles].toSorted(compararTalles),
   };

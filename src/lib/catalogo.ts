@@ -11,6 +11,7 @@ import { compararTalles } from "@/lib/talles";
 // por si algo cambia la base por fuera del panel.
 
 type Referencia = { name: string; slug: string };
+export type Categoria = Referencia & { position: number };
 export type Talle = { id: string; size: string; stock: number };
 
 export type ProductoResumen = {
@@ -21,7 +22,8 @@ export type ProductoResumen = {
   /** Precio anterior (tachado) o null si no tiene descuento. */
   precioAnterior: number | null;
   marca: Referencia | null;
-  categoria: (Referencia & { position: number }) | null;
+  /** Si es una subcategoría (Running), `madre` es la categoría que la contiene (Zapatillas). */
+  categoria: (Categoria & { madre: Categoria | null }) | null;
   publico: Publico;
   tendencia: boolean;
   deportes: boolean;
@@ -48,15 +50,38 @@ type FilaProducto = {
   is_outlet: boolean;
   description?: string;
   brands: Referencia | null;
-  categories: (Referencia & { position: number }) | null;
+  category_id: string | null;
   product_variants: Talle[];
   product_images: { storage_path: string }[];
 };
 
-const columnas =
-  "id, slug, name, price, compare_at_price, audience, is_trending, is_sports, is_outlet, brands(name, slug), categories(name, slug, position), product_variants(id, size, stock), product_images(storage_path)";
+type FilaCategoria = Categoria & { id: string; parent_id: string | null };
+type CategoriasPorId = Map<string, NonNullable<ProductoResumen["categoria"]>>;
 
-function normalizar(fila: FilaProducto): ProductoResumen {
+const columnas =
+  "id, slug, name, price, compare_at_price, audience, is_trending, is_sports, is_outlet, brands(name, slug), category_id, product_variants(id, size, stock), product_images(storage_path)";
+
+/**
+ * Todas las categorías por id, cada una con su madre si es una subcategoría.
+ * Se traen aparte (son pocas) en lugar de anidarlas en la consulta de productos.
+ */
+async function categoriasPorId(): Promise<CategoriasPorId> {
+  const { data, error } = await createPublicClient()
+    .from("categories")
+    .select("id, name, slug, position, parent_id");
+  if (error) throw new Error(`No se pudieron cargar las categorías: ${error.message}`);
+
+  const filas = new Map((data as FilaCategoria[]).map((c) => [c.id, c]));
+  const datos = ({ name, slug, position }: FilaCategoria): Categoria => ({ name, slug, position });
+  return new Map(
+    [...filas.values()].map((c) => {
+      const madre = c.parent_id ? filas.get(c.parent_id) : undefined;
+      return [c.id, { ...datos(c), madre: madre ? datos(madre) : null }];
+    }),
+  );
+}
+
+function normalizar(fila: FilaProducto, categorias: CategoriasPorId): ProductoResumen {
   const talles = fila.product_variants.toSorted((a, b) => compararTalles(a.size, b.size));
   return {
     id: fila.id,
@@ -65,7 +90,7 @@ function normalizar(fila: FilaProducto): ProductoResumen {
     price: Number(fila.price),
     precioAnterior: fila.compare_at_price === null ? null : Number(fila.compare_at_price),
     marca: fila.brands,
-    categoria: fila.categories,
+    categoria: (fila.category_id && categorias.get(fila.category_id)) || null,
     publico: fila.audience,
     tendencia: fila.is_trending,
     deportes: fila.is_sports,
@@ -86,16 +111,19 @@ export async function obtenerCatalogo(): Promise<ProductoResumen[]> {
   cacheTag("catalogo");
   cacheLife("hours");
 
-  const { data, error } = await createPublicClient()
-    .from("products")
-    .select(columnas)
-    .eq("active", true)
-    .order("created_at", { ascending: false })
-    .order("position", { referencedTable: "product_images" })
-    .limit(1, { referencedTable: "product_images" });
+  const [{ data, error }, categorias] = await Promise.all([
+    createPublicClient()
+      .from("products")
+      .select(columnas)
+      .eq("active", true)
+      .order("created_at", { ascending: false })
+      .order("position", { referencedTable: "product_images" })
+      .limit(1, { referencedTable: "product_images" }),
+    categoriasPorId(),
+  ]);
   if (error) throw new Error(`No se pudo cargar el catálogo: ${error.message}`);
 
-  return (data as unknown as FilaProducto[]).map(normalizar);
+  return (data as unknown as FilaProducto[]).map((fila) => normalizar(fila, categorias));
 }
 
 /** Un producto visible por su slug, con todas sus fotos. null si no existe o está oculto. */
@@ -104,20 +132,23 @@ export async function obtenerProducto(slug: string): Promise<ProductoDetalle | n
   cacheTag("catalogo");
   cacheLife("hours");
 
-  const { data, error } = await createPublicClient()
-    .from("products")
-    .select(`${columnas}, description`)
-    .eq("slug", slug)
-    .eq("active", true)
-    .order("position", { referencedTable: "product_images" })
-    .order("created_at", { referencedTable: "product_images" })
-    .maybeSingle();
+  const [{ data, error }, categorias] = await Promise.all([
+    createPublicClient()
+      .from("products")
+      .select(`${columnas}, description`)
+      .eq("slug", slug)
+      .eq("active", true)
+      .order("position", { referencedTable: "product_images" })
+      .order("created_at", { referencedTable: "product_images" })
+      .maybeSingle(),
+    categoriasPorId(),
+  ]);
   if (error) throw new Error(`No se pudo cargar el producto: ${error.message}`);
   if (!data) return null;
 
   const fila = data as unknown as FilaProducto;
   return {
-    ...normalizar(fila),
+    ...normalizar(fila, categorias),
     description: fila.description ?? "",
     fotos: fila.product_images.map((f) => urlFoto(f.storage_path)),
   };

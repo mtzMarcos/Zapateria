@@ -2,8 +2,9 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { urlFoto } from "@/lib/supabase/env";
+import type { Destacada } from "@/lib/secciones";
 
-// Portada del inicio (carrusel) y anuncio de la barra de arriba. Se editan en
+// Portada del inicio (carrusel y tarjetas) y anuncio de la barra de arriba. Se editan en
 // el panel → Portada, que invalida la etiqueta "catalogo" al guardar.
 
 export type Portada = {
@@ -55,4 +56,32 @@ export async function obtenerAnuncio(): Promise<Anuncio | null> {
   if (error) throw new Error(`No se pudo cargar el anuncio: ${error.message}`);
   if (!data?.announcement_active || !data.announcement_text.trim()) return null;
   return { texto: data.announcement_text, link: data.announcement_url };
+}
+
+export type Tarjeta = {
+  seccion: Destacada;
+  titulo: string;
+  subtitulo: string;
+  foto: string | null;
+};
+
+/** Tarjetas del inicio (Tendencias, Deportes y Outlet) visibles, en orden. */
+export async function obtenerTarjetas(): Promise<Tarjeta[]> {
+  "use cache";
+  cacheTag("catalogo");
+  cacheLife("hours");
+
+  const { data, error } = await createPublicClient()
+    .from("home_cards")
+    .select("section, title, subtitle, image_path")
+    .eq("active", true)
+    .order("position");
+  if (error) throw new Error(`No se pudieron cargar las tarjetas del inicio: ${error.message}`);
+
+  return data.map((t) => ({
+    seccion: t.section as Destacada,
+    titulo: t.title,
+    subtitulo: t.subtitle,
+    foto: t.image_path ? urlFoto(t.image_path) : null,
+  }));
 }

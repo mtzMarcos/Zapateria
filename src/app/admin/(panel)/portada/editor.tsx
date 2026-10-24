@@ -5,12 +5,15 @@ import { estadoInicial, type EstadoForm } from "@/lib/form";
 import { BotonEnviar, Mensaje } from "@/components/admin/ui";
 import { CampoImagen } from "@/components/admin/campo-imagen";
 import { claseInput, claseLabel, clasesBoton } from "@/components/admin/estilos";
+import type { Destacada } from "@/lib/secciones";
 import {
   borrarPortada,
   crearPortada,
   guardarAnuncio,
   guardarFotoPortada,
+  guardarFotoTarjeta,
   guardarPortada,
+  guardarTarjeta,
   moverPortada,
 } from "./actions";
 
@@ -281,6 +284,89 @@ export function EditorPortada({
         <Mensaje estado={estado} />
         <button type="submit" disabled={guardando} className={clasesBoton("primario")}>
           {guardando ? "Guardando…" : "Guardar portada"}
+        </button>
+      </form>
+    </li>
+  );
+}
+
+// ---------------------------------------------------------------------
+// Tarjetas del inicio
+// ---------------------------------------------------------------------
+
+export type DatosTarjeta = {
+  seccion: Destacada;
+  title: string;
+  subtitle: string;
+  active: boolean;
+  foto: string | null;
+};
+
+export function EditorTarjeta({ tarjeta, nombre }: { tarjeta: DatosTarjeta; nombre: string }) {
+  const [estado, accion, guardando] = useActionState(guardarTarjeta.bind(null, tarjeta.seccion), estadoInicial);
+  const [, startTransition] = useTransition();
+
+  return (
+    <li className="rounded-lg border border-neutral-200 bg-white p-5">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <h3 className="font-semibold">{nombre}</h3>
+        <span className="text-sm text-neutral-500">lleva a /{tarjeta.seccion}</span>
+        {!tarjeta.active && (
+          <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700">Oculta</span>
+        )}
+        {!tarjeta.foto && (
+          <span className="rounded bg-red-50 px-2 py-0.5 text-xs text-red-700">Sin foto: se ve un fondo neutro</span>
+        )}
+      </div>
+      <CampoImagen
+        carpeta="portada"
+        url={tarjeta.foto}
+        etiqueta="Foto"
+        ayuda="Vertical, recomendado 900×1200. El texto va abajo a la izquierda."
+        claseVista="aspect-[3/4] w-40"
+        guardar={guardarFotoTarjeta.bind(null, tarjeta.seccion)}
+      />
+      {/* onSubmit (no action): si hay un error, no se borra lo escrito. */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const datos = new FormData(e.currentTarget);
+          startTransition(() => accion(datos));
+        }}
+        className="mt-5 space-y-4"
+      >
+        <div>
+          <label htmlFor={`tarjeta-titulo-${tarjeta.seccion}`} className={claseLabel}>
+            Título
+          </label>
+          <input
+            id={`tarjeta-titulo-${tarjeta.seccion}`}
+            name="titulo"
+            maxLength={40}
+            required
+            defaultValue={tarjeta.title}
+            className={claseInput}
+          />
+        </div>
+        <div>
+          <label htmlFor={`tarjeta-subtitulo-${tarjeta.seccion}`} className={claseLabel}>
+            Texto <span className="font-normal text-neutral-500">(opcional)</span>
+          </label>
+          <input
+            id={`tarjeta-subtitulo-${tarjeta.seccion}`}
+            name="subtitulo"
+            maxLength={100}
+            defaultValue={tarjeta.subtitle}
+            className={claseInput}
+          />
+        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <input name="visible" type="checkbox" defaultChecked={tarjeta.active} />
+          Mostrar en la tienda
+        </label>
+        <Mensaje estado={estado} />
+        <button type="submit" disabled={guardando} className={clasesBoton("primario")}>
+          {guardando ? "Guardando…" : "Guardar tarjeta"}
         </button>
       </form>
     </li>
