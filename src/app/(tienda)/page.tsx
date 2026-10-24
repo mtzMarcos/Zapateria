@@ -5,6 +5,7 @@ import { filtrarProductos, opcionesDeFiltro } from "@/lib/filtros";
 import { obtenerPortadas, obtenerTarjetas } from "@/lib/portada";
 import { buscarSeccion } from "@/lib/secciones";
 import { CarruselPortada } from "@/components/tienda/carrusel-portada";
+import { Foto } from "@/components/tienda/foto";
 import { FranjaMarcas } from "@/components/tienda/franja-marcas";
 import { GrillaProductos } from "@/components/tienda/producto-card";
 import { TarjetasDestacadas } from "@/components/tienda/tarjetas-destacadas";
@@ -82,18 +83,35 @@ export default async function Home() {
 
           {categorias.length > 0 && (
             <section className="subir mt-16">
-              <h2 className="titulo-seccion mb-6">Categorías</h2>
-              <ul className="flex flex-wrap gap-3">
-                {categorias.map((c) => (
-                  <li key={c.slug}>
-                    <Link
-                      href={`/productos?categoria=${c.slug}`}
-                      className="block rounded-full border border-neutral-300 px-5 py-2 hover:border-neutral-900"
-                    >
-                      {c.name}
-                    </Link>
-                  </li>
-                ))}
+              <h2 className="titulo-seccion mb-6 text-center">Categorías</h2>
+              <ul className="flex flex-wrap justify-center gap-3 sm:gap-4">
+                {categorias.map((c) => {
+                  // La foto del primer producto (el más nuevo) con foto de la categoría o de una de sus subcategorías.
+                  const foto = catalogo.find(
+                    (p) => (p.categoria?.slug === c.slug || p.categoria?.madre?.slug === c.slug) && p.portada,
+                  )?.portada;
+                  return (
+                    <li key={c.slug} className="w-[calc(50%-0.375rem)] sm:w-44">
+                      <Link
+                        href={`/productos?categoria=${c.slug}`}
+                        className="group block rounded-lg transition-transform active:scale-[0.98]"
+                      >
+                        <span className="relative block aspect-square overflow-hidden rounded-lg bg-neutral-100">
+                          {foto && (
+                            <Foto
+                              src={foto}
+                              alt=""
+                              fill
+                              sizes="(min-width: 640px) 176px, 50vw"
+                              className="object-cover transition-[scale] duration-500 ease-out group-hover:scale-105"
+                            />
+                          )}
+                        </span>
+                        <span className="mt-2 block text-center text-sm font-medium">{c.name}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           )}

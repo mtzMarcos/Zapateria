@@ -56,7 +56,7 @@ export function PanelFiltros({
             <IconoCerrar />
           </button>
         </div>
-        <div className="space-y-5 px-4 py-5">{children}</div>
+        <div className="space-y-7 px-4 py-5">{children}</div>
         <div className="sticky bottom-0 border-t border-neutral-200 bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <button
             type="button"

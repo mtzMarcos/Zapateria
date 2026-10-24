@@ -7,8 +7,8 @@ import type { Marca } from "@/lib/catalogo";
 import { IconoFlecha } from "./iconos";
 
 /**
- * Franja de marcas: cada tarjeta muestra el logo (si tiene) y el nombre, y
- * lleva a /marcas/<marca>.
+ * Franja de marcas: cada tarjeta muestra solo el logo (o el nombre, si la
+ * marca no tiene logo) y lleva a /marcas/<marca>.
  * - Si las marcas entran en una fila, quedan centradas: la primera y la última
  *   tarjeta tienen margen automático, que reparte el espacio que sobra y vale 0
  *   cuando no entran (así no se corta la primera al deslizar).
@@ -43,22 +43,20 @@ export function FranjaMarcas({ marcas }: { marcas: Marca[] }) {
         className="flex snap-x gap-3 overflow-x-auto pb-2 [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden"
       >
         {marcas.map((m) => (
-          <li key={m.slug} className="w-36 shrink-0 snap-start first:ml-auto last:mr-auto sm:w-44">
+          <li key={m.slug} className="w-28 shrink-0 snap-start first:ml-auto last:mr-auto sm:w-32">
             {/* La tarjeta es blanca en los dos modos: los logos vienen pensados para fondo
                 blanco o transparente con trazo oscuro, y así se ven bien con la página clara u oscura. */}
             <Link
               href={`/marcas/${m.slug}`}
-              className="flex h-32 flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-[#fff] p-3 text-center text-[#171717] transition-colors hover:border-neutral-900 sm:h-36"
+              className="flex h-20 items-center justify-center rounded-lg border border-neutral-200 bg-[#fff] px-4 py-3 text-center text-[#171717] transition-colors hover:border-neutral-400 sm:h-24"
             >
               {m.logo ? (
-                <>
-                  <span className="relative h-14 w-full sm:h-16">
-                    <Foto src={m.logo} alt="" fill sizes="176px" className="object-contain" />
-                  </span>
-                  <span className="text-sm font-medium">{m.name}</span>
-                </>
+                // Solo el logo: el nombre queda como texto alternativo.
+                <span className="relative h-full w-full">
+                  <Foto src={m.logo} alt={m.name} fill sizes="128px" className="object-contain" />
+                </span>
               ) : (
-                <span className="text-lg font-bold tracking-wide uppercase">{m.name}</span>
+                <span className="text-sm font-semibold tracking-wide uppercase">{m.name}</span>
               )}
             </Link>
           </li>

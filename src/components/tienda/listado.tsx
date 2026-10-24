@@ -80,7 +80,7 @@ export async function Listado({
                     {c.name}
                   </Opcion>
                   {abierta && c.subcategorias.length > 0 && (
-                    <ul className="my-1 ml-1 space-y-0.5 border-l border-neutral-200 pl-3">
+                    <ul className="mt-0.5 mb-1.5 ml-4 space-y-0.5">
                       {c.subcategorias.map((s) => (
                         <li key={s.slug}>
                           <Opcion href={url({ categoria: s.slug })} activo={filtros.categoria === s.slug}>
@@ -117,17 +117,16 @@ export async function Listado({
       )}
 
       {opciones.talles.length > 0 && (
-        <GrupoFiltro titulo="Talle">
-          <div className="flex flex-wrap gap-2">
-            <Chip href={url({ talle: undefined })} activo={!filtros.talle}>
-              Todos
-            </Chip>
+        <GrupoFiltro titulo="Talle" quitar={filtros.talle ? url({ talle: undefined }) : undefined}>
+          <ul className="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-1.5">
             {opciones.talles.map((t) => (
-              <Chip key={t} href={url({ talle: t })} activo={filtros.talle === t}>
-                {t}
-              </Chip>
+              <li key={t}>
+                <CuadroTalle href={url({ talle: t })} activo={filtros.talle === t}>
+                  {t}
+                </CuadroTalle>
+              </li>
             ))}
-          </div>
+          </ul>
         </GrupoFiltro>
       )}
     </>
@@ -146,9 +145,10 @@ export async function Listado({
       {/* Columna de filtros (compu). Queda fija al bajar; si es más alta que la pantalla, se desplaza sola. */}
       <aside
         aria-label="Filtros"
-        className="sticky top-24 hidden max-h-[calc(100dvh-7rem)] space-y-7 overflow-y-auto pr-2 pb-4 lg:block"
+        className="sticky top-24 hidden max-h-[calc(100dvh-7rem)] overflow-y-auto pr-2 pb-4 lg:block"
       >
-        {contenidoFiltros}
+        {/* Una línea fina entre grupos. */}
+        <div className="divide-y divide-neutral-200 [&>*]:py-6 [&>*:first-child]:pt-0">{contenidoFiltros}</div>
       </aside>
 
       <div>
@@ -235,24 +235,52 @@ export function ListadoCargando() {
   );
 }
 
-function GrupoFiltro({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+/** Un grupo de filtros: título chico y, si hay algo elegido, "Quitar". */
+function GrupoFiltro({ titulo, quitar, children }: { titulo: string; quitar?: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="mb-2 text-sm font-semibold text-neutral-900">{titulo}</p>
+      <div className="mb-2.5 flex items-baseline justify-between">
+        <p className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">{titulo}</p>
+        {quitar && (
+          <Link href={quitar} scroll={false} className="text-xs text-neutral-500 underline hover:text-neutral-900">
+            Quitar
+          </Link>
+        )}
+      </div>
       {children}
     </div>
   );
 }
 
-/** Opción de una lista de filtros (categoría o marca). La elegida va en negrita. */
+/** Opción de una lista de filtros (categoría o marca): la elegida, con fondo suave y una línea a la izquierda. */
 function Opcion({ href, activo, children }: { href: string; activo: boolean; children: React.ReactNode }) {
   return (
     <Link
       href={href}
       scroll={false}
       aria-current={activo ? "true" : undefined}
-      className={`block rounded py-1 text-sm ${
-        activo ? "font-semibold text-neutral-900" : "text-neutral-600 hover:text-neutral-900 hover:underline"
+      className={`block rounded-md border-l-2 px-2.5 py-1.5 text-sm transition-colors ${
+        activo
+          ? "border-neutral-900 bg-neutral-100 font-medium text-neutral-900"
+          : "border-transparent text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+      }`}
+    >
+      {children}
+    </Link>
+  );
+}
+
+/** Talle en un cuadradito: todos del mismo tamaño. */
+function CuadroTalle({ href, activo, children }: { href: string; activo: boolean; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      aria-current={activo ? "true" : undefined}
+      className={`flex h-10 items-center justify-center rounded-md border text-sm transition-colors ${
+        activo
+          ? "border-neutral-900 bg-neutral-900 font-medium text-white"
+          : "border-neutral-200 hover:border-neutral-900"
       }`}
     >
       {children}
