@@ -185,8 +185,11 @@ function Diapositiva({
           al borde de abajo, así el fundido con la página no se ve gris. */}
       <div className="velo-portada absolute inset-0 md:bg-gradient-to-r md:from-[#000]/55 md:via-[#000]/20 md:to-transparent" />
       {/* La parte de abajo de la foto se funde con el fondo de la página (igual en todas las portadas). */}
-      <div aria-hidden className="fundido-portada pointer-events-none absolute inset-x-0 bottom-0 h-28 md:h-40" />
-      <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-7xl px-6 pb-32 text-[#fff] md:top-0 md:flex md:flex-col md:justify-center md:px-10 md:pb-0">
+      <div aria-hidden className="fundido-portada pointer-events-none absolute inset-x-0 bottom-0 h-[40%]" />
+      {/* El texto queda por encima del fundido. El padding en % se mide sobre el ancho:
+          50 % del ancho = 40 % de la altura con la foto 4:5 del celular (23 % con la 16:9).
+          En la compu va centrado, un poco más arriba del medio. */}
+      <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-7xl px-6 pb-[50%] text-[#fff] sm:pb-[23%] md:top-0 md:flex md:flex-col md:justify-center md:px-10 md:pb-24">
         {/* El texto de la portada que se ve aparece suave (sube 12 px y se funde). */}
         <div
           className={`max-w-xl transition-[opacity,translate] duration-500 ease-out ${

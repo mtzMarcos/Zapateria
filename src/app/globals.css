@@ -180,20 +180,29 @@
 
 /*
  * Portada (carrusel del inicio)
- * - .fundido-portada: la parte de abajo de la foto se funde con el fondo de la
+ * - .fundido-portada: el 40 % de abajo de la foto se funde con el fondo de la
  *   página. Termina en el fondo (white se invierte en modo oscuro), así es igual
- *   para cualquier foto y en los dos modos. Varios escalones: transición pareja.
+ *   para cualquier foto y en los dos modos. Los 11 escalones siguen la curva
+ *   smoothstep (t²·(3−2t)): arranca y termina sin cambios bruscos, así no se
+ *   ve ninguna línea.
  * - .velo-portada: oscurece la zona del texto en el celular para que el blanco
- *   se lea. Deja libre el borde de abajo, donde está el fundido. En la compu lo
- *   reemplaza un velo de izquierda a derecha (clases md: en el componente).
+ *   se lea. Empieza donde termina el fundido (40 % de abajo), así no se mezclan
+ *   y el fundido no se ve gris. En la compu lo reemplaza un velo de izquierda a
+ *   derecha (clases md: en el componente).
  */
 .fundido-portada {
   background-image: linear-gradient(
     to bottom,
     transparent 0%,
-    color-mix(in srgb, var(--color-white) 12%, transparent) 30%,
-    color-mix(in srgb, var(--color-white) 45%, transparent) 60%,
-    color-mix(in srgb, var(--color-white) 85%, transparent) 85%,
+    color-mix(in srgb, var(--color-white) 2.8%, transparent) 10%,
+    color-mix(in srgb, var(--color-white) 10.4%, transparent) 20%,
+    color-mix(in srgb, var(--color-white) 21.6%, transparent) 30%,
+    color-mix(in srgb, var(--color-white) 35.2%, transparent) 40%,
+    color-mix(in srgb, var(--color-white) 50%, transparent) 50%,
+    color-mix(in srgb, var(--color-white) 64.8%, transparent) 60%,
+    color-mix(in srgb, var(--color-white) 78.4%, transparent) 70%,
+    color-mix(in srgb, var(--color-white) 89.6%, transparent) 80%,
+    color-mix(in srgb, var(--color-white) 97.2%, transparent) 90%,
     var(--color-white) 100%
   );
 }
@@ -204,9 +213,10 @@
     background-image: linear-gradient(
       to top,
       transparent 0%,
-      rgb(0 0 0 / 0.5) 24%,
-      rgb(0 0 0 / 0.2) 55%,
-      transparent 80%
+      transparent 36%,
+      rgb(0 0 0 / 0.45) 46%,
+      rgb(0 0 0 / 0.3) 68%,
+      transparent 90%
     );
   }
 }
