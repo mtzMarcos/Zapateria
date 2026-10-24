@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useId, useState, useTransition } from "react";
 import type { EstadoForm } from "@/lib/form";
-import { colorDominante } from "@/lib/color-dominante";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { clasesBoton } from "./estilos";
 
@@ -19,8 +18,6 @@ const tamanioMaximo = 5 * 1024 * 1024; // igual al límite del bucket
  * botones para subir, cambiar o quitar. El archivo se sube directo del
  * navegador a Supabase Storage y después `guardar` registra la ruta (o null
  * para quitarla); el servidor valida la ruta y borra el archivo anterior.
- * Con `conColor`, además calcula el color dominante de la franja de abajo de
- * la foto y se lo pasa a `guardar` (portadas: degradado con la página).
  */
 export function CampoImagen({
   carpeta,
@@ -30,28 +27,23 @@ export function CampoImagen({
   guardar,
   claseVista = "aspect-video w-full",
   ajuste = "object-cover",
-  conColor = false,
-  color,
 }: {
   carpeta: "marcas" | "portada";
   url: string | null;
   etiqueta: string;
   ayuda?: string;
-  guardar: (ruta: string | null, color?: string | null) => Promise<EstadoForm>;
+  guardar: (ruta: string | null) => Promise<EstadoForm>;
   claseVista?: string;
   ajuste?: "object-cover" | "object-contain";
-  conColor?: boolean;
-  /** Color guardado de la foto actual (se muestra como una muestra). */
-  color?: string | null;
 }) {
   const [pendiente, startTransition] = useTransition();
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const id = useId();
 
-  function registrar(ruta: string | null, colorFoto?: string | null) {
+  function registrar(ruta: string | null) {
     startTransition(async () => {
-      const resultado = await guardar(ruta, colorFoto);
+      const resultado = await guardar(ruta);
       if (resultado.error) setError(resultado.error);
     });
   }
@@ -63,15 +55,12 @@ export function CampoImagen({
 
     setSubiendo(true);
     const ruta = `${carpeta}/${crypto.randomUUID()}.${extensiones[archivo.type]}`;
-    const [{ error }, colorFoto] = await Promise.all([
-      createBrowserSupabase()
-        .storage.from("product-images")
-        .upload(ruta, archivo, { contentType: archivo.type, cacheControl: "31536000" }),
-      conColor ? colorDominante(archivo) : Promise.resolve(null),
-    ]);
+    const { error } = await createBrowserSupabase()
+      .storage.from("product-images")
+      .upload(ruta, archivo, { contentType: archivo.type, cacheControl: "31536000" });
     setSubiendo(false);
     if (error) return setError(`No se pudo subir la imagen: ${error.message}`);
-    registrar(ruta, colorFoto);
+    registrar(ruta);
   }
 
   const ocupado = pendiente || subiendo;
@@ -88,12 +77,6 @@ export function CampoImagen({
           </span>
         )}
       </div>
-      {conColor && url && color && (
-        <p className="mt-1 flex items-center gap-2 text-xs text-neutral-500">
-          <span className="size-4 rounded-full border border-neutral-300" style={{ backgroundColor: color }} />
-          Color para el degradado: {color}
-        </p>
-      )}
       {ayuda && <p className="mt-1 text-xs text-neutral-500">{ayuda}</p>}
       <div className="mt-2 flex flex-wrap gap-2">
         <label

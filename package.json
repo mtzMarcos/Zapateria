@@ -9,8 +9,7 @@
     "lint": "eslint",
     "ejemplo:cargar": "node --env-file=.env.local scripts/datos-ejemplo.mjs cargar",
     "ejemplo:borrar": "node --env-file=.env.local scripts/datos-ejemplo.mjs borrar",
-    "pruebas": "node --env-file=.env.local scripts/pruebas/correr.mjs",
-    "portadas:colores": "node --env-file=.env.local scripts/colores-portadas.mjs"
+    "pruebas": "node --env-file=.env.local scripts/pruebas/correr.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

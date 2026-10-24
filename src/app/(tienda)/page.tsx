@@ -36,8 +36,8 @@ export default async function Home() {
         )}
 
         <main className="mx-auto w-full max-w-7xl px-4">
-          {/* Con portadas, la banda de degradado ya separa: menos margen arriba. */}
-          <section className={portadas.length > 0 ? "mt-4 sm:mt-6" : "mt-12 sm:mt-16"}>
+          {/* Con portadas, la foto ya se funde con la página: menos margen arriba. */}
+          <section className={portadas.length > 0 ? "mt-6 sm:mt-10" : "mt-12 sm:mt-16"}>
             <div className="mb-6 flex items-baseline justify-between">
               <h2 className="titulo-seccion">Novedades</h2>
               {catalogo.length > novedades.length && (

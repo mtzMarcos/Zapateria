@@ -179,26 +179,35 @@
 }
 
 /*
- * Degradado de la portada: la parte de abajo del carrusel se funde con la
- * página, pasando por el color de la foto (calculado al subirla en el panel).
- * Cada portada define --c-compu y --c-celular; .color-portada elige el que
- * corresponde al ancho de pantalla. Registrar --color-portada como <color>
- * permite que cambie suave (700 ms, como el fundido de las fotos) al pasar de
- * portada. El final del degradado es el fondo de la página (white se invierte
- * en modo oscuro), así funciona en los dos modos.
+ * Portada (carrusel del inicio)
+ * - .fundido-portada: la parte de abajo de la foto se funde con el fondo de la
+ *   página. Termina en el fondo (white se invierte en modo oscuro), así es igual
+ *   para cualquier foto y en los dos modos. Varios escalones: transición pareja.
+ * - .velo-portada: oscurece la zona del texto en el celular para que el blanco
+ *   se lea. Deja libre el borde de abajo, donde está el fundido. En la compu lo
+ *   reemplaza un velo de izquierda a derecha (clases md: en el componente).
  */
-@property --color-portada {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #3f3f46;
+.fundido-portada {
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--color-white) 12%, transparent) 30%,
+    color-mix(in srgb, var(--color-white) 45%, transparent) 60%,
+    color-mix(in srgb, var(--color-white) 85%, transparent) 85%,
+    var(--color-white) 100%
+  );
 }
-.color-portada {
-  --color-portada: var(--c-celular);
-  transition: --color-portada 700ms ease-in-out;
-}
-@media (width >= 40rem) {
-  .color-portada {
-    --color-portada: var(--c-compu);
+/* Solo en el celular (debajo del corte md): esta regla le gana a las clases de
+   Tailwind, así que en la compu no tiene que aplicarse. */
+@media (width < 48rem) {
+  .velo-portada {
+    background-image: linear-gradient(
+      to top,
+      transparent 0%,
+      rgb(0 0 0 / 0.5) 24%,
+      rgb(0 0 0 / 0.2) 55%,
+      transparent 80%
+    );
   }
 }
 

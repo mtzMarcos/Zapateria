@@ -9,9 +9,6 @@ import { IconoFlecha, IconoPausa, IconoPlay } from "./iconos";
 
 const INTERVALO = 6000; // ms entre portadas
 
-/** Colores de la portada para el degradado con la página (ver .color-portada en globals.css). */
-const colores = (p: Portada) => ({ "--c-compu": p.color, "--c-celular": p.colorCelular }) as React.CSSProperties;
-
 // Los textos van sobre fotos: usan colores fijos (blanco sobre un velo oscuro)
 // en vez de la paleta, que en modo oscuro se invierte.
 
@@ -55,8 +52,7 @@ export function CarruselPortada({ portadas }: { portadas: Portada[] }) {
     <section
       aria-roledescription="carrusel"
       aria-label="Destacados"
-      className="color-portada relative"
-      style={colores(portadas[actual] ?? portadas[0])}
+      className="relative"
       onMouseEnter={() => setEnUso(true)}
       onMouseLeave={() => setEnUso(false)}
       onFocus={() => setEnUso(true)}
@@ -146,12 +142,6 @@ export function CarruselPortada({ portadas }: { portadas: Portada[] }) {
           </>
         )}
       </div>
-
-      {/* Banda debajo de la foto: del color de la portada al fondo de la página. */}
-      <div
-        aria-hidden
-        className="h-12 bg-[linear-gradient(to_bottom,var(--color-portada),var(--color-white))] md:h-20"
-      />
     </section>
   );
 }
@@ -191,13 +181,12 @@ function Diapositiva({
           [Completar: foto de portada]
         </span>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#000]/60 via-[#000]/15 to-transparent md:bg-gradient-to-r md:from-[#000]/55 md:via-[#000]/20" />
-      {/* Abajo, la foto termina en su color: sigue en la banda de debajo sin corte. */}
-      <div
-        className="color-portada absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(to_bottom,transparent,var(--color-portada))] md:h-32"
-        style={colores(portada)}
-      />
-      <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-7xl px-6 pb-20 text-[#fff] md:top-0 md:flex md:flex-col md:justify-center md:px-10 md:pb-0">
+      {/* Velo oscuro detrás del texto. En el celular queda a la altura del texto y no llega
+          al borde de abajo, así el fundido con la página no se ve gris. */}
+      <div className="velo-portada absolute inset-0 md:bg-gradient-to-r md:from-[#000]/55 md:via-[#000]/20 md:to-transparent" />
+      {/* La parte de abajo de la foto se funde con el fondo de la página (igual en todas las portadas). */}
+      <div aria-hidden className="fundido-portada pointer-events-none absolute inset-x-0 bottom-0 h-28 md:h-40" />
+      <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-7xl px-6 pb-32 text-[#fff] md:top-0 md:flex md:flex-col md:justify-center md:px-10 md:pb-0">
         {/* El texto de la portada que se ve aparece suave (sube 12 px y se funde). */}
         <div
           className={`max-w-xl transition-[opacity,translate] duration-500 ease-out ${

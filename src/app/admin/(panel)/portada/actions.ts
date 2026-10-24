@@ -106,28 +106,18 @@ export async function guardarPortada(
   return { ok: "Portada guardada." };
 }
 
-/**
- * Guarda (o quita, con null) la foto de compu o de celular y borra el archivo
- * anterior. `color`: color dominante de la franja de abajo de la foto (lo
- * calcula el navegador), para el degradado de la portada con la página.
- */
+/** Guarda (o quita, con null) la foto de compu o de celular y borra el archivo anterior. */
 export async function guardarFotoPortada(
   id: string,
   cual: "compu" | "celular",
   ruta: string | null,
-  color?: string | null,
 ): Promise<EstadoForm> {
   const { supabase } = await requireAdmin();
   if (ruta !== null && !rutaValida("portada", ruta)) return { error: "Ruta de foto inválida." };
   const columna = cual === "compu" ? "image_path" : "mobile_image_path";
-  const columnaColor = cual === "compu" ? "image_color" : "mobile_image_color";
-  const colorValido = ruta !== null && color && /^#[0-9a-f]{6}$/i.test(color) ? color : null;
 
   const { data: anterior } = await supabase.from("home_slides").select(columna).eq("id", id).maybeSingle();
-  const { error } = await supabase
-    .from("home_slides")
-    .update({ [columna]: ruta, [columnaColor]: colorValido })
-    .eq("id", id);
+  const { error } = await supabase.from("home_slides").update({ [columna]: ruta }).eq("id", id);
   if (error) {
     await borrarArchivos([ruta]);
     return { error: mensajeError(error) };
