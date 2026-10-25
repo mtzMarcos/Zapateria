@@ -50,6 +50,11 @@ listo; lo que falta depende del cliente o del lanzamiento.
    `npm run ejemplo:borrar`), logo y favicon, revisión legal de las páginas, dominio.
 3. Lanzamiento: ver "Lista para el lanzamiento" más abajo (dominio, Mercado Pago del cliente, primer pago real para
    verificar el webhook, mails con el dominio, Search Console).
+4. **Rediseño de marcas, categorías del inicio y filtros: pendiente (no convenció).** Está en la rama
+   `mejoras-marcas-categorias-filtros` (subida a GitHub, **no pasar a `main`**; queda como referencia): marcas solo
+   con logo y tarjetas más chicas, categorías del inicio como tarjetas con foto centradas, y columna de filtros con
+   títulos chicos, opción elegida con fondo suave y línea, subcategorías con sangría y talles en cuadraditos. Compila;
+   las pruebas no se corrieron. Hay que retomarlo con otra idea.
 
 **Pruebas automáticas:** `npm run build` y `npm run pruebas` (detalle en el README). 8 pruebas, 225 comprobaciones:
 funciones SQL, carrito y checkout, pago, panel de pedidos, arrepentimiento, tienda, y dos en el navegador (tienda y
